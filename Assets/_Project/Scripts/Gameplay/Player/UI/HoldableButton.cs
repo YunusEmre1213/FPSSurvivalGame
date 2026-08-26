@@ -3,7 +3,7 @@ using UnityEngine.EventSystems;
 
 namespace Project.Gameplay.Player.UI
 {
-    public class FireButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+    public class HoldableButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
         public bool Held { get; private set; }
 
@@ -19,7 +19,6 @@ namespace Project.Gameplay.Player.UI
         {
             Held = false;
         }
-
         public bool ConsumePressedThisFrame()
         {
             var value = _pressedThisFrame;

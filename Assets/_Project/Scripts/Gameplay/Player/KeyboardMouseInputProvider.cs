@@ -1,4 +1,5 @@
 using UnityEngine;
+using Project.Core;
 
 namespace Project.Gameplay.Player
 {
@@ -6,12 +7,20 @@ namespace Project.Gameplay.Player
     {
         [SerializeField] private float mouseSensitivity = 2f;
 
-        public Vector2 MoveInput => new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+        public Vector2 MoveInput => UIInputLock.IsLocked
+            ? Vector2.zero
+            : new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
 
-        public Vector2 LookDelta => new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * mouseSensitivity;
+        public Vector2 LookDelta => UIInputLock.IsLocked
+            ? Vector2.zero
+            : new Vector2(Input.GetAxis("Mouse X"), Input.GetAxis("Mouse Y")) * mouseSensitivity;
 
-        public bool FireHeld => Input.GetMouseButton(0);
+        public bool FireHeld => !UIInputLock.IsLocked && Input.GetMouseButton(0);
 
-        public bool FirePressedThisFrame => Input.GetMouseButtonDown(0);
+        public bool FirePressedThisFrame => !UIInputLock.IsLocked && Input.GetMouseButtonDown(0);
+
+        public bool PickupPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.E);
+
+        public bool InteractPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.F);
     }
 }

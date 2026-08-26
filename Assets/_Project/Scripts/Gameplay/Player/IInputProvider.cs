@@ -9,6 +9,10 @@ namespace Project.Gameplay.Player
         Vector2 LookDelta { get; }
 
         bool FireHeld { get; }
+
         bool FirePressedThisFrame { get; }
+
+        bool PickupPressedThisFrame { get; }
+        bool InteractPressedThisFrame { get; }
     }
 }

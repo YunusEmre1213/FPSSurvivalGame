@@ -9,7 +9,6 @@ namespace Project.Gameplay.Weapons
         SemiAuto,
         Automatic
     }
-
     public class WeaponController : MonoBehaviour
     {
         [Header("Bagimliliklar")]
@@ -46,7 +45,6 @@ namespace Project.Gameplay.Weapons
             _assembly.EquipPart(stock);
             _stats = _assembly.CalculateStats();
 
-            // Strategy Pattern hangi somut sinifin kullanilacagina burada tek bir yerde karar veriliyor.
             _fireStrategy = fireMode == FireMode.SemiAuto
                 ? new SemiAutoFireStrategy()
                 : new AutoFireStrategy();
@@ -63,6 +61,18 @@ namespace Project.Gameplay.Weapons
             {
                 AttemptFire();
             }
+        }
+        public void ApplyAssembly(WeaponPartData barrelPart, WeaponPartData magazinePart,
+            WeaponPartData stockPart, WeaponPartData sightPart)
+        {
+            _assembly = new WeaponAssembly(baseWeapon);
+            if (barrelPart != null) _assembly.EquipPart(barrelPart);
+            if (magazinePart != null) _assembly.EquipPart(magazinePart);
+            if (stockPart != null) _assembly.EquipPart(stockPart);
+            if (sightPart != null) _assembly.EquipPart(sightPart);
+
+            _stats = _assembly.CalculateStats();
+            Debug.Log($"[WeaponController] Yeni kurulum uygulandi -> {_stats}");
         }
 
         private void AttemptFire()
