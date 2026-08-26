@@ -14,17 +14,30 @@ namespace Project.Gameplay.Player
 
         [Header("Hareket")]
         [SerializeField] private float moveSpeed = 4.5f;
+        [Tooltip("Hedef hiza ulasma suresi (saniye). Kucuk deger = ani baslama/durma, buyuk deger = kaygan/gecikmeli his.")]
+        [SerializeField] private float moveSmoothTime = 0.08f;
         [SerializeField] private float gravity = -18f;
 
         [Header("Nisan")]
         [SerializeField] private float lookSpeed = 3f;
+        [Tooltip("Dokunmatik girdideki titremeyi azaltir. 0 = hic yumusatma (en hizli tepki, en titrek). Yuksek deger = daha yumusak ama gecikmeli.")]
+        [SerializeField] private float lookSmoothTime = 0.03f;
         [SerializeField] private float minPitch = -80f;
         [SerializeField] private float maxPitch = 80f;
 
         private IInputProvider _input;
         private CharacterController _characterController;
+
         private float _verticalVelocity;
         private float _pitch;
+
+      
+        private Vector3 _currentMoveVelocity;
+        private Vector3 _moveVelocitySmoothRef;
+
+        
+        private Vector2 _smoothedLookDelta;
+        private Vector2 _lookDeltaSmoothRef;
 
         private void Awake()
         {
@@ -48,30 +61,35 @@ namespace Project.Gameplay.Player
 
         private void HandleLook()
         {
-            var lookDelta = _input.LookDelta;
+            var rawDelta = _input.LookDelta;
 
-            transform.Rotate(Vector3.up, lookDelta.x * lookSpeed);
+            _smoothedLookDelta = Vector2.SmoothDamp(_smoothedLookDelta, rawDelta, ref _lookDeltaSmoothRef, lookSmoothTime);
 
-            _pitch = Mathf.Clamp(_pitch - lookDelta.y * lookSpeed, minPitch, maxPitch);
+            transform.Rotate(Vector3.up, _smoothedLookDelta.x * lookSpeed);
+
+            _pitch = Mathf.Clamp(_pitch - _smoothedLookDelta.y * lookSpeed, minPitch, maxPitch);
             cameraPivot.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
         }
 
         private void HandleMove()
         {
             var moveInput = _input.MoveInput;
-            var moveDirection = transform.right * moveInput.x + transform.forward * moveInput.y;
-            moveDirection = Vector3.ClampMagnitude(moveDirection, 1f);
+            var targetDirection = transform.right * moveInput.x + transform.forward * moveInput.y;
+            targetDirection = Vector3.ClampMagnitude(targetDirection, 1f);
+            var targetVelocity = targetDirection * moveSpeed;
+
+            _currentMoveVelocity = Vector3.SmoothDamp(_currentMoveVelocity, targetVelocity, ref _moveVelocitySmoothRef, moveSmoothTime);
 
             if (_characterController.isGrounded && _verticalVelocity < 0f)
             {
-                _verticalVelocity = -1f; 
+                _verticalVelocity = -1f;
             }
             _verticalVelocity += gravity * Time.deltaTime;
 
-            var velocity = moveDirection * moveSpeed;
-            velocity.y = _verticalVelocity;
+            var finalVelocity = _currentMoveVelocity;
+            finalVelocity.y = _verticalVelocity;
 
-            _characterController.Move(velocity * Time.deltaTime);
+            _characterController.Move(finalVelocity * Time.deltaTime);
         }
     }
 }
