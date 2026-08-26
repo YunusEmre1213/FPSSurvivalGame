@@ -7,5 +7,8 @@ namespace Project.Gameplay.Player
         Vector2 MoveInput { get; }
 
         Vector2 LookDelta { get; }
+
+        bool FireHeld { get; }
+        bool FirePressedThisFrame { get; }
     }
 }
