@@ -26,5 +26,10 @@ namespace Project.Systems
         {
             return _unlockedKeys.Contains(keyId);
         }
+
+        public IReadOnlyCollection<string> GetAllUnlockedKeys()
+        {
+            return _unlockedKeys;
+        }
     }
 }

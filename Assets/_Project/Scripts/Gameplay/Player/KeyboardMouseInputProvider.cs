@@ -23,6 +23,8 @@ namespace Project.Gameplay.Player
 
         public bool InteractPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.F);
 
+        public bool PausePressedThisFrame => Input.GetKeyDown(KeyCode.Escape);
+
         private void Awake()
         {
             ActiveInput.SetProvider(this);

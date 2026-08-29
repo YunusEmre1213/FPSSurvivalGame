@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Project.Core;
 
 namespace Project.Systems
@@ -6,5 +7,6 @@ namespace Project.Systems
     {
         void Unlock(string keyId);
         bool HasKey(string keyId);
+        IReadOnlyCollection<string> GetAllUnlockedKeys();
     }
 }

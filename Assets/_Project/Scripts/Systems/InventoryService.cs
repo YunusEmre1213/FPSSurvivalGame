@@ -43,5 +43,11 @@ namespace Project.Systems
         {
             return _parts;
         }
+
+        public void ClearAll()
+        {
+            _parts.Clear();
+            EventBus.Publish(new InventoryChangedEvent(null, 0));
+        }
     }
 }

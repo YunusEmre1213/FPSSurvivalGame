@@ -9,6 +9,7 @@ namespace Project.Gameplay.Weapons
         SemiAuto,
         Automatic
     }
+
     public class WeaponController : MonoBehaviour
     {
         [Header("Bagimliliklar")]
@@ -74,6 +75,10 @@ namespace Project.Gameplay.Weapons
 
             _stats = _assembly.CalculateStats();
             Debug.Log($"[WeaponController] Yeni kurulum uygulandi -> {_stats}");
+        }
+        public WeaponPartData GetEquippedPart(WeaponPartType slot)
+        {
+            return _assembly?.GetEquippedPart(slot);
         }
 
         private void AttemptFire()
