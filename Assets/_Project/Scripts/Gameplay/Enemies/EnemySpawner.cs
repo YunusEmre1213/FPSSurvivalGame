@@ -10,16 +10,29 @@ namespace Project.Gameplay.Enemies
         [Header("Spawn noktalari")]
         [SerializeField] private Transform[] spawnPoints;
 
-        [Header("Dusman prefabi")]
-        [SerializeField] private GameObject enemyPrefab;
+        [Header("Dusman prefableri")]
+        [SerializeField] private GameObject oncuPrefab;
+        [SerializeField] private GameObject suruPrefab;
+        [SerializeField] private GameObject elitePrefab;
 
-        [Header("Faz basina spawn sayisi")]
-        [Tooltip("Oncu tip gunduz de nadiren gorulur.")]
-        [SerializeField] private int daySpawnCount = 1;
-        [SerializeField] private int duskSpawnCount = 2;
-        [SerializeField] private int nightSpawnCount = 4;
+        [Header("Faz basina Oncu spawn sayisi")]
+        [SerializeField] private int oncuDayCount = 1;
+        [SerializeField] private int oncuDuskCount = 2;
+        [SerializeField] private int oncuNightCount = 1;
 
-        private readonly List<GameObject> _spawnedEnemies = new List<GameObject>();
+        [Header("Faz basina Suru spawn sayisi")]
+        [SerializeField] private int suruDayCount = 0;
+        [SerializeField] private int suruDuskCount = 0;
+        [SerializeField] private int suruNightCount = 4;
+
+        [Header("Elit spawn (sadece gece, sans bazli)")]
+        [Range(0f, 1f)]
+        [SerializeField] private float eliteNightSpawnChance = 0.3f;
+        [SerializeField] private int eliteCountWhenSpawned = 1;
+
+        private readonly Dictionary<GameObject, Queue<GameObject>> _pools = new Dictionary<GameObject, Queue<GameObject>>();
+        private readonly List<GameObject> _activeEnemies = new List<GameObject>();
+        private readonly Dictionary<GameObject, GameObject> _instanceSourcePrefab = new Dictionary<GameObject, GameObject>();
 
         private void OnEnable()
         {
@@ -44,37 +57,79 @@ namespace Project.Gameplay.Enemies
 
         private void SpawnForPhase(DayNightPhase phase)
         {
-            ClearSpawnedEnemies();
+            RecycleActiveEnemies();
 
-            int count = phase switch
+            var (oncuCount, suruCount) = phase switch
             {
-                DayNightPhase.Day => daySpawnCount,
-                DayNightPhase.Dusk => duskSpawnCount,
-                DayNightPhase.Night => nightSpawnCount,
-                _ => daySpawnCount
+                DayNightPhase.Day => (oncuDayCount, suruDayCount),
+                DayNightPhase.Dusk => (oncuDuskCount, suruDuskCount),
+                DayNightPhase.Night => (oncuNightCount, suruNightCount),
+                _ => (oncuDayCount, suruDayCount)
             };
 
-            Debug.Log($"[EnemySpawner] Faz: {phase} - {count} dusman spawn ediliyor.");
+            int eliteCount = 0;
+            if (phase == DayNightPhase.Night && Random.value < eliteNightSpawnChance)
+            {
+                eliteCount = eliteCountWhenSpawned;
+            }
+
+            Debug.Log($"[EnemySpawner] Faz: {phase} - {oncuCount} oncu, {suruCount} suru, {eliteCount} elit spawn ediliyor.");
+
+            SpawnCount(oncuPrefab, oncuCount);
+            SpawnCount(suruPrefab, suruCount);
+            SpawnCount(elitePrefab, eliteCount);
+        }
+
+        private void SpawnCount(GameObject prefab, int count)
+        {
+            if (prefab == null) return;
 
             for (int i = 0; i < count; i++)
             {
                 if (spawnPoints == null || spawnPoints.Length == 0) break;
                 var point = spawnPoints[Random.Range(0, spawnPoints.Length)];
-                var enemy = Instantiate(enemyPrefab, point.position, point.rotation);
-                _spawnedEnemies.Add(enemy);
+                SpawnFromPool(prefab, point.position, point.rotation);
             }
         }
 
-        private void ClearSpawnedEnemies()
+        private void SpawnFromPool(GameObject prefab, Vector3 position, Quaternion rotation)
         {
-            foreach (var enemy in _spawnedEnemies)
+            if (!_pools.TryGetValue(prefab, out var pool))
             {
-                if (enemy != null)
+                pool = new Queue<GameObject>();
+                _pools[prefab] = pool;
+            }
+
+            GameObject instance;
+            if (pool.Count > 0)
+            {
+                instance = pool.Dequeue();
+                var enemyController = instance.GetComponent<EnemyController>();
+                enemyController.ResetForPool(position, rotation);
+            }
+            else
+            {
+                instance = Instantiate(prefab, position, rotation);
+                _instanceSourcePrefab[instance] = prefab;
+            }
+
+            _activeEnemies.Add(instance);
+        }
+
+        private void RecycleActiveEnemies()
+        {
+            foreach (var enemy in _activeEnemies)
+            {
+                if (enemy == null) continue;
+
+                enemy.SetActive(false);
+
+                if (_instanceSourcePrefab.TryGetValue(enemy, out var sourcePrefab))
                 {
-                    Destroy(enemy);
+                    _pools[sourcePrefab].Enqueue(enemy);
                 }
             }
-            _spawnedEnemies.Clear();
+            _activeEnemies.Clear();
         }
     }
 }

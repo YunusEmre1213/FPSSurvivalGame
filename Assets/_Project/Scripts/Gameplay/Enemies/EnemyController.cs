@@ -7,13 +7,12 @@ namespace Project.Gameplay.Enemies
     public class EnemyController : MonoBehaviour, IDamageable
     {
         [Header("Referanslar")]
-        [Tooltip("Sahnedeki oyuncu Transform")]
         [SerializeField] private Transform player;
 
         [Header("Algilama")]
         [SerializeField] private float detectionRange = 12f;
         [SerializeField] private float attackRange = 2f;
-        [Tooltip("Oyuncu bu mesafenin disina cikarsa kovalamayi birak devriyeye don.")]
+        [Tooltip("Oyuncu bu mesafenin disina cikarsa kovalamayi birak, devriyeye don.")]
         [SerializeField] private float loseTargetRange = 18f;
 
         [Header("Hareket")]
@@ -24,6 +23,8 @@ namespace Project.Gameplay.Enemies
         [SerializeField] private float health = 30f;
         [SerializeField] private float damage = 5f;
         [SerializeField] private float attackCooldown = 1.5f;
+        [Tooltip("Saldiridan once bekleme suresi (saniye). 0 = aninda vurur (oncu/suru). >0 = 'belirgin saldiri patern' - elit tipte kullanilir, oyuncuya tepki verme sansi tanir.")]
+        [SerializeField] private float attackWindupTime = 0f;
 
         public NavMeshAgent Agent { get; private set; }
         public Transform Player => player;
@@ -33,19 +34,49 @@ namespace Project.Gameplay.Enemies
         public float PatrolRadius => patrolRadius;
         public float PatrolWaitTime => patrolWaitTime;
         public float AttackCooldown => attackCooldown;
+        public float AttackWindupTime => attackWindupTime;
         public Vector3 SpawnPosition { get; private set; }
 
         private EnemyStateMachine _stateMachine;
+        private float _maxHealth;
 
         private void Awake()
         {
             Agent = GetComponent<NavMeshAgent>();
             SpawnPosition = transform.position;
             _stateMachine = new EnemyStateMachine();
+            _maxHealth = health;
+
+            if (player == null)
+            {
+                var playerObj = GameObject.FindGameObjectWithTag("Player");
+                if (playerObj != null)
+                {
+                    player = playerObj.transform;
+                }
+                else
+                {
+                    Debug.LogError("[EnemyController] Player bulunamadi - sahnede 'Player' tag'li obje var mi kontrol et.");
+                }
+            }
         }
 
         private void Start()
         {
+            _stateMachine.ChangeState(new EnemyPatrolState(this));
+        }
+        public void ResetForPool(Vector3 spawnPosition, Quaternion spawnRotation)
+        {
+            gameObject.SetActive(true);
+            transform.SetPositionAndRotation(spawnPosition, spawnRotation);
+            SpawnPosition = spawnPosition;
+            health = _maxHealth;
+
+            if (Agent != null)
+            {
+                Agent.Warp(spawnPosition);
+            }
+
             _stateMachine.ChangeState(new EnemyPatrolState(this));
         }
 

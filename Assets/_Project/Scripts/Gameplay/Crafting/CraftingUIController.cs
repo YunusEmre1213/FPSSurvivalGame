@@ -15,20 +15,25 @@ namespace Project.Gameplay.Crafting
         [Header("Silah verisi")]
         [SerializeField] private WeaponBaseData baseWeapon;
 
-        [Header("Bilinen parcalar (slot basina simdilik tek secenek)")]
+        [Header("Barrel secenekleri (iki secenekli - karsilikli dislama)")]
         [SerializeField] private WeaponPartData barrelOption;
+        [SerializeField] private WeaponPartData barrelOptionAlt;
+
+        [Header("Diger parcalar (slot basina tek secenek)")]
         [SerializeField] private WeaponPartData magazineOption;
         [SerializeField] private WeaponPartData stockOption;
         [SerializeField] private WeaponPartData sightOption;
 
         [Header("Slot butonlari")]
         [SerializeField] private Button barrelButton;
+        [SerializeField] private Button barrelAltButton;
         [SerializeField] private Button magazineButton;
         [SerializeField] private Button stockButton;
         [SerializeField] private Button sightButton;
 
         [Header("Slot buton metinleri")]
         [SerializeField] private Text barrelButtonText;
+        [SerializeField] private Text barrelAltButtonText;
         [SerializeField] private Text magazineButtonText;
         [SerializeField] private Text stockButtonText;
         [SerializeField] private Text sightButtonText;
@@ -41,14 +46,15 @@ namespace Project.Gameplay.Crafting
         [Header("Hedef silah")]
         [SerializeField] private WeaponController targetWeaponController;
 
-        private bool _barrelEquipped;
+        private WeaponPartData _equippedBarrel; 
         private bool _magazineEquipped;
         private bool _stockEquipped;
         private bool _sightEquipped;
 
         private void Awake()
         {
-            barrelButton.onClick.AddListener(() => ToggleSlot(WeaponPartType.Barrel));
+            barrelButton.onClick.AddListener(() => ToggleBarrel(barrelOption));
+            barrelAltButton.onClick.AddListener(() => ToggleBarrel(barrelOptionAlt));
             magazineButton.onClick.AddListener(() => ToggleSlot(WeaponPartType.Magazine));
             stockButton.onClick.AddListener(() => ToggleSlot(WeaponPartType.Stock));
             sightButton.onClick.AddListener(() => ToggleSlot(WeaponPartType.Sight));
@@ -60,7 +66,7 @@ namespace Project.Gameplay.Crafting
 
         public void Open()
         {
-            if (panelRoot.activeSelf) return; 
+            if (panelRoot.activeSelf) return;
 
             panelRoot.SetActive(true);
             UIInputLock.Lock();
@@ -75,15 +81,21 @@ namespace Project.Gameplay.Crafting
             UIInputLock.Unlock();
         }
 
+        private void ToggleBarrel(WeaponPartData option)
+        {
+            var inventory = ServiceLocator.Instance.Get<IInventoryService>();
+            if (inventory.GetPartCount(option) <= 0) return;
+
+            _equippedBarrel = (_equippedBarrel == option) ? null : option;
+            RefreshAll();
+        }
+
         private void ToggleSlot(WeaponPartType type)
         {
             var inventory = ServiceLocator.Instance.Get<IInventoryService>();
 
             switch (type)
             {
-                case WeaponPartType.Barrel:
-                    if (inventory.GetPartCount(barrelOption) > 0) _barrelEquipped = !_barrelEquipped;
-                    break;
                 case WeaponPartType.Magazine:
                     if (inventory.GetPartCount(magazineOption) > 0) _magazineEquipped = !_magazineEquipped;
                     break;
@@ -102,13 +114,14 @@ namespace Project.Gameplay.Crafting
         {
             var inventory = ServiceLocator.Instance.Get<IInventoryService>();
 
-            RefreshSlotButton(barrelButtonText, barrelOption, _barrelEquipped, inventory.GetPartCount(barrelOption));
+            RefreshSlotButton(barrelButtonText, barrelOption, _equippedBarrel == barrelOption, inventory.GetPartCount(barrelOption));
+            RefreshSlotButton(barrelAltButtonText, barrelOptionAlt, _equippedBarrel == barrelOptionAlt, inventory.GetPartCount(barrelOptionAlt));
             RefreshSlotButton(magazineButtonText, magazineOption, _magazineEquipped, inventory.GetPartCount(magazineOption));
             RefreshSlotButton(stockButtonText, stockOption, _stockEquipped, inventory.GetPartCount(stockOption));
             RefreshSlotButton(sightButtonText, sightOption, _sightEquipped, inventory.GetPartCount(sightOption));
 
             var previewAssembly = new WeaponAssembly(baseWeapon);
-            if (_barrelEquipped) previewAssembly.EquipPart(barrelOption);
+            if (_equippedBarrel != null) previewAssembly.EquipPart(_equippedBarrel);
             if (_magazineEquipped) previewAssembly.EquipPart(magazineOption);
             if (_stockEquipped) previewAssembly.EquipPart(stockOption);
             if (_sightEquipped) previewAssembly.EquipPart(sightOption);
@@ -119,15 +132,19 @@ namespace Project.Gameplay.Crafting
         private void RefreshSlotButton(Text label, WeaponPartData part, bool equipped, int ownedCount)
         {
             bool owned = ownedCount > 0;
+            string riskTag = part.IsCorrupted ? $" [ARIZALI - RISK %{part.malfunctionChance * 100f:F0}]" : "";
+
             label.text = owned
-                ? $"{part.partName} ({ownedCount}) - {(equipped ? "TAKILI" : "bos")}"
-                : $"{part.partName} - sahip degilsin";
+                ? $"{part.partName} ({ownedCount}) - {(equipped ? "TAKILI" : "bos")}{riskTag}"
+                : $"{part.partName} - sahip degilsin{riskTag}";
+
+            label.color = part.IsCorrupted ? new Color(0.85f, 0.25f, 0.2f) : Color.white;
         }
 
         private void OnEquipPressed()
         {
             targetWeaponController.ApplyAssembly(
-                _barrelEquipped ? barrelOption : null,
+                _equippedBarrel,
                 _magazineEquipped ? magazineOption : null,
                 _stockEquipped ? stockOption : null,
                 _sightEquipped ? sightOption : null);

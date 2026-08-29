@@ -6,6 +6,8 @@ namespace Project.Data
     public class WeaponPartData : ScriptableObject
     {
         [Header("Kimlik")]
+        [Tooltip("Kayit sisteminde bu parcayi tanimlayan KALICI ID. Asset adiyla ayni tutmani oneririm (ornegin 'Barrel_Standart'). Bir kere belirledikten sonra DEGISTIRME - degistirirsen eski save dosyalari bu parcayi bulamaz.")]
+        public string partId;
         public string partName = "Yeni Parca";
         public WeaponPartType partType;
 

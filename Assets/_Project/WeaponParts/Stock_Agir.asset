@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a52fa7befa3266498e8411c24451912, type: 3}
   m_Name: Stock_Agir
   m_EditorClassIdentifier: Assembly-CSharp::Project.Data.WeaponPartData
+  partId: Stock_Agir
   partName: "A\u011F\u0131r Dip\xE7ik"
   partType: 2
   damageModifier: 0

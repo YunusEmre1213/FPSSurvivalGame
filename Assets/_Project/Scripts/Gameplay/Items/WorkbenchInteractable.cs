@@ -5,11 +5,9 @@ using Project.Gameplay.Crafting;
 
 namespace Project.Gameplay.Items
 {
-
     [RequireComponent(typeof(Collider))]
     public class WorkbenchInteractable : MonoBehaviour, IInteractable
     {
-        [SerializeField] private MonoBehaviour inputProviderSource;
         [SerializeField] private CraftingUIController craftingUI;
 
         private IInputProvider _input;
@@ -17,13 +15,9 @@ namespace Project.Gameplay.Items
 
         public string InteractionPrompt => "Workbench'i ac";
 
-        private void Awake()
+        private void Start()
         {
-            _input = inputProviderSource as IInputProvider;
-            if (_input == null)
-            {
-                Debug.LogError("[WorkbenchInteractable] inputProviderSource alaný IInputProvider implemente etmiyor.");
-            }
+            _input = ActiveInput.Provider;
         }
 
         private void OnTriggerEnter(Collider other)

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Project.Core;
 using Project.Gameplay;
 
 namespace Project.Gameplay.Player
@@ -11,12 +12,15 @@ namespace Project.Gameplay.Player
         private void Awake()
         {
             _currentHealth = maxHealth;
+            EventBus.Publish(new PlayerHealthChangedEvent(_currentHealth, maxHealth));
         }
 
         public void TakeDamage(float amount)
         {
             _currentHealth = Mathf.Max(0f, _currentHealth - amount);
             Debug.Log($"[PlayerHealth] Oyuncu {amount} hasar aldi, kalan can: {_currentHealth}/{maxHealth}");
+
+            EventBus.Publish(new PlayerHealthChangedEvent(_currentHealth, maxHealth));
 
             if (_currentHealth <= 0f)
             {

@@ -6,9 +6,6 @@ namespace Project.Gameplay.Player
     public class FirstPersonController : MonoBehaviour
     {
         [Header("Bagimliliklar")]
-        [Tooltip("IInputProvider implemente eden bilesen (MobileInputProvider veya KeyboardMouseInputProvider) buraya suruklenir.")]
-        [SerializeField] private MonoBehaviour inputProviderSource;
-
         [Tooltip("Kameranin dikey (pitch) dondugu nokta - oyuncunun goz hizasinda bos bir child obje.")]
         [SerializeField] private Transform cameraPivot;
 
@@ -31,23 +28,25 @@ namespace Project.Gameplay.Player
         private float _verticalVelocity;
         private float _pitch;
 
-      
+       
         private Vector3 _currentMoveVelocity;
         private Vector3 _moveVelocitySmoothRef;
 
-        
+      
         private Vector2 _smoothedLookDelta;
         private Vector2 _lookDeltaSmoothRef;
 
         private void Awake()
         {
             _characterController = GetComponent<CharacterController>();
+        }
 
-            _input = inputProviderSource as IInputProvider;
+        private void Start()
+        {
+            _input = ActiveInput.Provider;
             if (_input == null)
             {
-                Debug.LogError("[FirstPersonController] inputProviderSource alani IInputProvider implemente etmiyor. " +
-                                "Inspector'dan MobileInputProvider veya KeyboardMouseInputProvider surukle.");
+                Debug.LogError("[FirstPersonController] ActiveInput.Provider hala null - sahnede InputSourceSelector var mi kontrol et.");
             }
         }
 

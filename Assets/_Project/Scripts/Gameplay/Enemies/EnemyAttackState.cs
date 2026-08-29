@@ -6,6 +6,8 @@ namespace Project.Gameplay.Enemies
     {
         private readonly EnemyController _enemy;
         private float _attackTimer;
+        private bool _isWindingUp;
+        private float _windupTimer;
 
         public EnemyAttackState(EnemyController enemy)
         {
@@ -16,6 +18,7 @@ namespace Project.Gameplay.Enemies
         {
             _enemy.Agent.isStopped = true;
             _attackTimer = 0f;
+            _isWindingUp = false;
         }
 
         public void Update()
@@ -28,11 +31,32 @@ namespace Project.Gameplay.Enemies
                 return;
             }
 
+            if (_isWindingUp)
+            {
+                _windupTimer -= Time.deltaTime;
+                if (_windupTimer <= 0f)
+                {
+                    _enemy.DealDamageToPlayer();
+                    _isWindingUp = false;
+                    _attackTimer = _enemy.AttackCooldown;
+                }
+                return;
+            }
+
             _attackTimer -= Time.deltaTime;
             if (_attackTimer <= 0f)
             {
-                _enemy.DealDamageToPlayer();
-                _attackTimer = _enemy.AttackCooldown;
+                if (_enemy.AttackWindupTime > 0f)
+                {
+                    _isWindingUp = true;
+                    _windupTimer = _enemy.AttackWindupTime;
+                    Debug.Log($"[EnemyAttackState] {_enemy.name} saldiri hazirliginda...");
+                }
+                else
+                {
+                    _enemy.DealDamageToPlayer();
+                    _attackTimer = _enemy.AttackCooldown;
+                }
             }
         }
 

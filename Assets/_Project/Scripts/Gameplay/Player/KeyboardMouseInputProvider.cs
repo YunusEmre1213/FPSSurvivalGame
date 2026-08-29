@@ -22,5 +22,24 @@ namespace Project.Gameplay.Player
         public bool PickupPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.E);
 
         public bool InteractPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.F);
+
+        private void Awake()
+        {
+            ActiveInput.SetProvider(this);
+        }
+
+        private void Update()
+        {
+            if (UIInputLock.IsLocked)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+            }
+            else
+            {
+                Cursor.lockState = CursorLockMode.Locked;
+                Cursor.visible = false;
+            }
+        }
     }
 }

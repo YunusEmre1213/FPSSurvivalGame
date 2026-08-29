@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a52fa7befa3266498e8411c24451912, type: 3}
+  m_Name: Barrel_Agir
+  m_EditorClassIdentifier: Assembly-CSharp::Project.Data.WeaponPartData
+  partId: Barrel_Agir
+  partName: Agir Namlu
+  partType: 0
+  damageModifier: 12
+  accuracyModifier: -0.05
+  fireRateModifier: 0
+  recoilModifier: 0.05
+  durabilityModifier: 0
+  ammoCapacityModifier: 0
+  malfunctionChance: 0

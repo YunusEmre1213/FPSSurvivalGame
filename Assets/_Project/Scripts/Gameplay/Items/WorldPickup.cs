@@ -12,21 +12,15 @@ namespace Project.Gameplay.Items
     {
         [SerializeField] private WeaponPartData part;
         [SerializeField] private int amount = 1;
-        [Tooltip("Oyuncunun Pickup girdisini okuyacaðý kaynak ")]
-        [SerializeField] private MonoBehaviour inputProviderSource;
 
         private IInputProvider _input;
         private bool _playerInRange;
 
         public string InteractionPrompt => $"{part.partName} topla";
 
-        private void Awake()
+        private void Start()
         {
-            _input = inputProviderSource as IInputProvider;
-            if (_input == null)
-            {
-                Debug.LogError("[WorldPickup] inputProviderSource alaný IInputProvider implemente etmiyor.");
-            }
+            _input = ActiveInput.Provider;
         }
 
         private void OnTriggerEnter(Collider other)

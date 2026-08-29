@@ -12,8 +12,6 @@ namespace Project.Gameplay.Weapons
     public class WeaponController : MonoBehaviour
     {
         [Header("Bagimliliklar")]
-        [Tooltip("IInputProvider implemente eden bilesen (MobileInputProvider veya KeyboardMouseInputProvider).")]
-        [SerializeField] private MonoBehaviour inputProviderSource;
         [SerializeField] private Camera fireCamera;
 
         [Header("Silah verisi")]
@@ -33,12 +31,6 @@ namespace Project.Gameplay.Weapons
 
         private void Awake()
         {
-            _input = inputProviderSource as IInputProvider;
-            if (_input == null)
-            {
-                Debug.LogError("[WeaponController] inputProviderSource alani IInputProvider implemente etmiyor.");
-            }
-
             _assembly = new WeaponAssembly(baseWeapon);
             _assembly.EquipPart(barrel);
             _assembly.EquipPart(magazine);
@@ -50,6 +42,15 @@ namespace Project.Gameplay.Weapons
                 : new AutoFireStrategy();
 
             Debug.Log($"[WeaponController] {baseWeapon.weaponName} hazir ({fireMode}) -> {_stats}");
+        }
+
+        private void Start()
+        {
+            _input = ActiveInput.Provider;
+            if (_input == null)
+            {
+                Debug.LogError("[WeaponController] ActiveInput.Provider hala null - sahnede InputSourceSelector var mi kontrol et.");
+            }
         }
 
         private void Update()
