@@ -24,11 +24,24 @@ namespace Project.Systems
         [SerializeField] private PhaseLighting duskLighting;
         [SerializeField] private PhaseLighting nightLighting;
 
+        [Header("Skybox blend (Mat_SkyboxBlend + Cubemap dokular)")]
+        [Tooltip("SkyboxBlend shader'ini kullanan materyal - RenderSettings.skybox'a bir kere atanir, bir daha degismez, sadece dokular/blend guncellenir.")]
+        [SerializeField] private Material skyboxBlendMaterial;
+        [SerializeField] private Cubemap daySkyTexture;
+        [SerializeField] private Cubemap duskSkyTexture;
+        [SerializeField] private Cubemap nightSkyTexture;
+        [Tooltip("Gokyuzu gecisinin hizi. Isik gecisinden (transitionSpeed) genelde biraz daha hizli tutmak iyi sonuc verir.")]
+        [SerializeField] private float skyboxTransitionSpeed = 0.8f;
+
         [Header("Gecis")]
         [Tooltip("Hedef degerlere ne kadar hizli yaklasilacagi - kucuk deger = yavas/yumusak gecis, buyuk deger = hizli/ani.")]
         [SerializeField] private float transitionSpeed = 0.5f;
 
         private PhaseLighting _target;
+
+        private Cubemap _currentSkyTexture;
+        private Cubemap _targetSkyTexture;
+        private float _skyboxBlend = 1f;
 
         private void OnEnable()
         {
@@ -42,9 +55,21 @@ namespace Project.Systems
 
         private void Start()
         {
-            
             _target = dayLighting;
             ApplyImmediate(_target);
+
+            _currentSkyTexture = daySkyTexture;
+            _targetSkyTexture = daySkyTexture;
+            _skyboxBlend = 1f;
+
+            if (skyboxBlendMaterial != null)
+            {
+                RenderSettings.skybox = skyboxBlendMaterial;
+                skyboxBlendMaterial.SetTexture("_TextureA", daySkyTexture);
+                skyboxBlendMaterial.SetTexture("_TextureB", daySkyTexture);
+                skyboxBlendMaterial.SetFloat("_Blend", 0f);
+                DynamicGI.UpdateEnvironment();
+            }
         }
 
         private void OnPhaseChanged(DayNightPhaseChangedEvent evt)
@@ -56,24 +81,56 @@ namespace Project.Systems
                 DayNightPhase.Night => nightLighting,
                 _ => dayLighting
             };
+
+            var newSkyTexture = evt.NewPhase switch
+            {
+                DayNightPhase.Day => daySkyTexture,
+                DayNightPhase.Dusk => duskSkyTexture,
+                DayNightPhase.Night => nightSkyTexture,
+                _ => daySkyTexture
+            };
+            StartSkyboxTransition(newSkyTexture);
+        }
+
+        private void StartSkyboxTransition(Cubemap newTexture)
+        {
+            if (newTexture == null || skyboxBlendMaterial == null) return;
+
+            _currentSkyTexture = _targetSkyTexture;
+            _targetSkyTexture = newTexture;
+            _skyboxBlend = 0f;
+
+            skyboxBlendMaterial.SetTexture("_TextureA", _currentSkyTexture);
+            skyboxBlendMaterial.SetTexture("_TextureB", _targetSkyTexture);
         }
 
         private void Update()
         {
-            if (_target == null) return;
-
-           
-            float t = 1f - Mathf.Exp(-transitionSpeed * Time.deltaTime);
-
-            if (directionalLight != null)
+            if (_target != null)
             {
-                directionalLight.color = Color.Lerp(directionalLight.color, _target.lightColor, t);
-                directionalLight.intensity = Mathf.Lerp(directionalLight.intensity, _target.lightIntensity, t);
+                float t = 1f - Mathf.Exp(-transitionSpeed * Time.deltaTime);
+
+                if (directionalLight != null)
+                {
+                    directionalLight.color = Color.Lerp(directionalLight.color, _target.lightColor, t);
+                    directionalLight.intensity = Mathf.Lerp(directionalLight.intensity, _target.lightIntensity, t);
+                }
+
+                RenderSettings.fogColor = Color.Lerp(RenderSettings.fogColor, _target.fogColor, t);
+                RenderSettings.fogDensity = Mathf.Lerp(RenderSettings.fogDensity, _target.fogDensity, t);
+                RenderSettings.ambientIntensity = Mathf.Lerp(RenderSettings.ambientIntensity, _target.ambientIntensity, t);
             }
 
-            RenderSettings.fogColor = Color.Lerp(RenderSettings.fogColor, _target.fogColor, t);
-            RenderSettings.fogDensity = Mathf.Lerp(RenderSettings.fogDensity, _target.fogDensity, t);
-            RenderSettings.ambientIntensity = Mathf.Lerp(RenderSettings.ambientIntensity, _target.ambientIntensity, t);
+            if (skyboxBlendMaterial != null && _skyboxBlend < 1f)
+            {
+                _skyboxBlend = Mathf.Min(1f, _skyboxBlend + skyboxTransitionSpeed * Time.deltaTime);
+                skyboxBlendMaterial.SetFloat("_Blend", _skyboxBlend);
+
+                if (_skyboxBlend >= 1f)
+                {
+                    DynamicGI.UpdateEnvironment();
+                }
+            }
         }
 
         private void ApplyImmediate(PhaseLighting lighting)

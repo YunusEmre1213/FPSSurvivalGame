@@ -15772,7 +15772,12 @@ MonoBehaviour:
     fogColor: {r: 0.05882353, g: 0.05882353, b: 0.09803922, a: 1}
     fogDensity: 0.03
     ambientIntensity: 0.25
-  transitionSpeed: 0.5
+  skyboxBlendMaterial: {fileID: 2100000, guid: 4357de7cb37580640aa238ea77eeaeff, type: 2}
+  daySkyTexture: {fileID: 8900000, guid: c8f21f62fdb3e43c5b32917c84683698, type: 3}
+  duskSkyTexture: {fileID: 8900000, guid: 6fa3f446deee84c52aec507bd0aca28c, type: 3}
+  nightSkyTexture: {fileID: 8900000, guid: 97259d0c0ea9f491692be825da27978a, type: 3}
+  skyboxTransitionSpeed: 0.8
+  transitionSpeed: 0.3
 --- !u!4 &1542685192
 Transform:
   m_ObjectHideFlags: 0
