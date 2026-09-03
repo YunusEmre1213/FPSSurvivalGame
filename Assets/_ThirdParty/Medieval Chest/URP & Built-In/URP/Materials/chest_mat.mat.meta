@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: b1ca5c0015cd75f428277da3788a1222
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 191228
+  packageName: Medieval Chest HQ
+  packageVersion: 1.1
+  assetPath: Assets/Medieval Chest/URP & Built-In/URP/Materials/chest_mat.mat
+  uploadId: 948506
