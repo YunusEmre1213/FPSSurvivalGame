@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 namespace Project.Systems
 {
+
     [Serializable]
     public class SaveData
     {
@@ -14,7 +15,7 @@ namespace Project.Systems
     [Serializable]
     public class InventoryEntry
     {
-        public string partId;
+        public string itemId;
         public int count;
     }
 

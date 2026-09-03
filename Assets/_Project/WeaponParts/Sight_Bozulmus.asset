@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a52fa7befa3266498e8411c24451912, type: 3}
   m_Name: Sight_Bozulmus
   m_EditorClassIdentifier: Assembly-CSharp::Project.Data.WeaponPartData
-  partId: Sight_Bozulmus
-  partName: "Bozulmu\u015F Ni\u015Fangah"
+  itemId: Sight_Bozulmus
+  itemName: "Bozulmu\u015F Ni\u015Fangah"
+  icon: {fileID: 0}
+  description: 
+  maxStackSize: 20
   partType: 3
   damageModifier: 0
   accuracyModifier: 0.15

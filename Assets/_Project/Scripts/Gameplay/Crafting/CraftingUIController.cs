@@ -83,8 +83,8 @@ namespace Project.Gameplay.Crafting
 
         private void ToggleBarrel(WeaponPartData option)
         {
-            var inventory = ServiceLocator.Instance.Get<IInventoryService>();
-            if (inventory.GetPartCount(option) <= 0) return;
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
+            if (inventory.GetItemCount(option) <= 0) return;
 
             _equippedBarrel = (_equippedBarrel == option) ? null : option;
             RefreshAll();
@@ -92,18 +92,18 @@ namespace Project.Gameplay.Crafting
 
         private void ToggleSlot(WeaponPartType type)
         {
-            var inventory = ServiceLocator.Instance.Get<IInventoryService>();
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
 
             switch (type)
             {
                 case WeaponPartType.Magazine:
-                    if (inventory.GetPartCount(magazineOption) > 0) _magazineEquipped = !_magazineEquipped;
+                    if (inventory.GetItemCount(magazineOption) > 0) _magazineEquipped = !_magazineEquipped;
                     break;
                 case WeaponPartType.Stock:
-                    if (inventory.GetPartCount(stockOption) > 0) _stockEquipped = !_stockEquipped;
+                    if (inventory.GetItemCount(stockOption) > 0) _stockEquipped = !_stockEquipped;
                     break;
                 case WeaponPartType.Sight:
-                    if (inventory.GetPartCount(sightOption) > 0) _sightEquipped = !_sightEquipped;
+                    if (inventory.GetItemCount(sightOption) > 0) _sightEquipped = !_sightEquipped;
                     break;
             }
 
@@ -112,13 +112,13 @@ namespace Project.Gameplay.Crafting
 
         private void RefreshAll()
         {
-            var inventory = ServiceLocator.Instance.Get<IInventoryService>();
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
 
-            RefreshSlotButton(barrelButtonText, barrelOption, _equippedBarrel == barrelOption, inventory.GetPartCount(barrelOption));
-            RefreshSlotButton(barrelAltButtonText, barrelOptionAlt, _equippedBarrel == barrelOptionAlt, inventory.GetPartCount(barrelOptionAlt));
-            RefreshSlotButton(magazineButtonText, magazineOption, _magazineEquipped, inventory.GetPartCount(magazineOption));
-            RefreshSlotButton(stockButtonText, stockOption, _stockEquipped, inventory.GetPartCount(stockOption));
-            RefreshSlotButton(sightButtonText, sightOption, _sightEquipped, inventory.GetPartCount(sightOption));
+            RefreshSlotButton(barrelButtonText, barrelOption, _equippedBarrel == barrelOption, inventory.GetItemCount(barrelOption));
+            RefreshSlotButton(barrelAltButtonText, barrelOptionAlt, _equippedBarrel == barrelOptionAlt, inventory.GetItemCount(barrelOptionAlt));
+            RefreshSlotButton(magazineButtonText, magazineOption, _magazineEquipped, inventory.GetItemCount(magazineOption));
+            RefreshSlotButton(stockButtonText, stockOption, _stockEquipped, inventory.GetItemCount(stockOption));
+            RefreshSlotButton(sightButtonText, sightOption, _sightEquipped, inventory.GetItemCount(sightOption));
 
             var previewAssembly = new WeaponAssembly(baseWeapon);
             if (_equippedBarrel != null) previewAssembly.EquipPart(_equippedBarrel);
@@ -135,8 +135,8 @@ namespace Project.Gameplay.Crafting
             string riskTag = part.IsCorrupted ? $" [ARIZALI - RISK %{part.malfunctionChance * 100f:F0}]" : "";
 
             label.text = owned
-                ? $"{part.partName} ({ownedCount}) - {(equipped ? "TAKILI" : "bos")}{riskTag}"
-                : $"{part.partName} - sahip degilsin{riskTag}";
+                ? $"{part.itemName} ({ownedCount}) - {(equipped ? "TAKILI" : "bos")}{riskTag}"
+                : $"{part.itemName} - sahip degilsin{riskTag}";
 
             label.color = part.IsCorrupted ? new Color(0.85f, 0.25f, 0.2f) : Color.white;
         }

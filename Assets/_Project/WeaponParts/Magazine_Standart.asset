@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a52fa7befa3266498e8411c24451912, type: 3}
   m_Name: Magazine_Standart
   m_EditorClassIdentifier: Assembly-CSharp::Project.Data.WeaponPartData
-  partId: Magazine_Standart
-  partName: "Standart \u015Earj\xF6r"
+  itemId: Magazine_Standart
+  itemName: "Standart \u015Earj\xF6r"
+  icon: {fileID: 0}
+  description: 
+  maxStackSize: 20
   partType: 1
   damageModifier: 0
   accuracyModifier: 0

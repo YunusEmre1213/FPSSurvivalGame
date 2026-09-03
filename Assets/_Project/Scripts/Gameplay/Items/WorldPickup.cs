@@ -10,13 +10,13 @@ namespace Project.Gameplay.Items
     [RequireComponent(typeof(Collider))]
     public class WorldPickup : MonoBehaviour, IInteractable
     {
-        [SerializeField] private WeaponPartData part;
+        [SerializeField] private ItemData item;
         [SerializeField] private int amount = 1;
 
         private IInputProvider _input;
         private bool _playerInRange;
 
-        public string InteractionPrompt => $"{part.partName} topla";
+        public string InteractionPrompt => $"{item.itemName} topla";
 
         private void Start()
         {
@@ -51,13 +51,25 @@ namespace Project.Gameplay.Items
 
         public void Interact()
         {
-            var inventory = ServiceLocator.Instance.Get<IInventoryService>();
-            inventory.AddPart(part, amount);
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
+            int leftover = inventory.AddItem(item, amount);
+            int actuallyAdded = amount - leftover;
 
-            int total = inventory.GetPartCount(part);
-            Debug.Log($"[WorldPickup] Toplandý: {part.partName} x{amount} (toplam: {total})");
+            if (actuallyAdded > 0)
+            {
+                int total = inventory.GetItemCount(item);
+                Debug.Log($"[WorldPickup] Toplandi: {item.itemName} x{actuallyAdded} (envanterde toplam: {total})");
+            }
 
-            Destroy(gameObject);
+            if (leftover <= 0)
+            {
+                Destroy(gameObject);
+            }
+            else
+            {
+                amount = leftover;
+                Debug.Log("[WorldPickup] Envanter dolu - kalan miktar objede kaldi, tekrar etkilesime gec.");
+            }
         }
     }
 }

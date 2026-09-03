@@ -7,8 +7,8 @@ namespace Project.Core
     public class Bootstrapper : MonoBehaviour
     {
         [Header("Servis bagimliliklari")]
-        [Tooltip("SaveService'in kayittaki partId'leri gercek asset'lere cevirmesi icin gerekli.")]
-        [SerializeField] private WeaponPartDatabase weaponPartDatabase;
+        [Tooltip("SaveService'in kayittaki itemId'leri gercek asset'lere cevirmesi icin gerekli.")]
+        [SerializeField] private ItemDatabase itemDatabase;
 
         private void Awake()
         {
@@ -18,8 +18,8 @@ namespace Project.Core
 
         private void RegisterServices()
         {
-            ServiceLocator.Instance.Register<IInventoryService>(new InventoryService());
-            ServiceLocator.Instance.Register<ISaveService>(new SaveService(weaponPartDatabase));
+            ServiceLocator.Instance.Register<IItemInventoryService>(new ItemInventoryService(24));
+            ServiceLocator.Instance.Register<ISaveService>(new SaveService(itemDatabase));
             ServiceLocator.Instance.Register<IKeyItemService>(new KeyItemService());
         }
 

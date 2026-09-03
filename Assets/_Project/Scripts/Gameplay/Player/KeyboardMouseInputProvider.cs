@@ -25,6 +25,8 @@ namespace Project.Gameplay.Player
 
         public bool PausePressedThisFrame => Input.GetKeyDown(KeyCode.Escape);
 
+        public bool InventoryPressedThisFrame => Input.GetKeyDown(KeyCode.I);
+
         private void Awake()
         {
             ActiveInput.SetProvider(this);

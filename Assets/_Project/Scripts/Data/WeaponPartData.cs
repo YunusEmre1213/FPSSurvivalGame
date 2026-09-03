@@ -3,12 +3,9 @@ using UnityEngine;
 namespace Project.Data
 {
     [CreateAssetMenu(fileName = "NewWeaponPart", menuName = "MobilFPS/Weapon Part")]
-    public class WeaponPartData : ScriptableObject
+    public class WeaponPartData : ItemData
     {
-        [Header("Kimlik")]
-        [Tooltip("Kayit sisteminde bu parcayi tanimlayan KALICI ID. Asset adiyla ayni tutmani oneririm (ornegin 'Barrel_Standart'). Bir kere belirledikten sonra DEGISTIRME - degistirirsen eski save dosyalari bu parcayi bulamaz.")]
-        public string partId;
-        public string partName = "Yeni Parca";
+        [Header("Silah ozellikleri")]
         public WeaponPartType partType;
 
         [Header("Stat degistiricileri (taban stat'lara eklenir)")]

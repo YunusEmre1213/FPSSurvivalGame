@@ -8,12 +8,12 @@ namespace Project.Systems
 {
     public class SaveService : ISaveService
     {
-        private readonly WeaponPartDatabase _partDatabase;
+        private readonly ItemDatabase _itemDatabase;
         private readonly string _savePath;
 
-        public SaveService(WeaponPartDatabase partDatabase)
+        public SaveService(ItemDatabase itemDatabase)
         {
-            _partDatabase = partDatabase;
+            _itemDatabase = itemDatabase;
             _savePath = Path.Combine(Application.persistentDataPath, "save.json");
         }
 
@@ -29,11 +29,17 @@ namespace Project.Systems
         {
             var data = new SaveData();
 
-            var inventory = ServiceLocator.Instance.Get<IInventoryService>();
-            foreach (var kvp in inventory.GetAllParts())
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
+            for (int i = 0; i < inventory.SlotCount; i++)
             {
-                if (kvp.Key == null) continue;
-                data.inventoryEntries.Add(new InventoryEntry { partId = kvp.Key.partId, count = kvp.Value });
+                var slot = inventory.GetSlot(i);
+                if (slot.IsEmpty) continue;
+
+                data.inventoryEntries.Add(new InventoryEntry
+                {
+                    itemId = slot.Item.itemId,
+                    count = slot.Count
+                });
             }
 
             var keyItems = ServiceLocator.Instance.Get<IKeyItemService>();
@@ -45,15 +51,15 @@ namespace Project.Systems
             var weaponController = FindPlayerWeaponController();
             if (weaponController != null)
             {
-                data.equippedWeapon.barrelPartId = weaponController.GetEquippedPart(WeaponPartType.Barrel)?.partId ?? "";
-                data.equippedWeapon.magazinePartId = weaponController.GetEquippedPart(WeaponPartType.Magazine)?.partId ?? "";
-                data.equippedWeapon.stockPartId = weaponController.GetEquippedPart(WeaponPartType.Stock)?.partId ?? "";
-                data.equippedWeapon.sightPartId = weaponController.GetEquippedPart(WeaponPartType.Sight)?.partId ?? "";
+                data.equippedWeapon.barrelPartId = weaponController.GetEquippedPart(WeaponPartType.Barrel)?.itemId ?? "";
+                data.equippedWeapon.magazinePartId = weaponController.GetEquippedPart(WeaponPartType.Magazine)?.itemId ?? "";
+                data.equippedWeapon.stockPartId = weaponController.GetEquippedPart(WeaponPartType.Stock)?.itemId ?? "";
+                data.equippedWeapon.sightPartId = weaponController.GetEquippedPart(WeaponPartType.Sight)?.itemId ?? "";
             }
 
             string json = JsonUtility.ToJson(data, true);
             File.WriteAllText(_savePath, json);
-            Debug.Log($"[SaveService] Kaydedildi: {_savePath} ({data.inventoryEntries.Count} parca turu, {data.unlockedKeyIds.Count} anahtar)");
+            Debug.Log($"[SaveService] Kaydedildi: {_savePath} ({data.inventoryEntries.Count} esya turu, {data.unlockedKeyIds.Count} anahtar)");
         }
 
         public void Load()
@@ -67,18 +73,18 @@ namespace Project.Systems
             string json = File.ReadAllText(_savePath);
             var data = JsonUtility.FromJson<SaveData>(json);
 
-            var inventory = ServiceLocator.Instance.Get<IInventoryService>();
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
             foreach (var entry in data.inventoryEntries)
             {
-                var part = _partDatabase.FindById(entry.partId);
-                if (part != null)
+                var item = _itemDatabase.FindById(entry.itemId);
+                if (item != null)
                 {
-                    inventory.AddPart(part, entry.count);
-                    Debug.Log($"[SaveService] Parca yuklendi: {entry.partId} x{entry.count}");
+                    inventory.AddItem(item, entry.count);
+                    Debug.Log($"[SaveService] Yuklendi: {entry.itemId} x{entry.count}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[SaveService] Kayitli parca ID'si veritabaninda bulunamadi: {entry.partId}");
+                    Debug.LogWarning($"[SaveService] Kayitli esya ID'si veritabaninda bulunamadi: {entry.itemId}");
                 }
             }
 
@@ -104,9 +110,10 @@ namespace Project.Systems
             Debug.Log($"[SaveService] Yukleme tamamlandi: {_savePath}");
         }
 
-        private WeaponPartData ResolvePart(string partId)
+        private WeaponPartData ResolvePart(string itemId)
         {
-            return string.IsNullOrEmpty(partId) ? null : _partDatabase.FindById(partId);
+            if (string.IsNullOrEmpty(itemId)) return null;
+            return _itemDatabase.FindById(itemId) as WeaponPartData;
         }
 
         private WeaponController FindPlayerWeaponController()

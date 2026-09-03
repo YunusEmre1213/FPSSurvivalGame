@@ -42,7 +42,7 @@ namespace Project.Gameplay.Player
             IsDead = true;
             UIInputLock.Lock();
 
-            ServiceLocator.Instance.Get<Systems.IInventoryService>().ClearAll();
+            ServiceLocator.Instance.Get<Systems.IItemInventoryService>().ClearAll();
 
             Debug.Log("[PlayerHealth] Oyuncu oldu, stok envanteri kayboldu.");
             EventBus.Publish(new PlayerDiedEvent());

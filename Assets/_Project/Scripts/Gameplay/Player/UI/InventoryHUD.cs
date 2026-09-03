@@ -12,12 +12,12 @@ namespace Project.UI
 
         private void OnEnable()
         {
-            EventBus.Subscribe<InventoryChangedEvent>(OnInventoryChanged);
+            EventBus.Subscribe<InventorySlotChangedEvent>(OnInventoryChanged);
         }
 
         private void OnDisable()
         {
-            EventBus.Unsubscribe<InventoryChangedEvent>(OnInventoryChanged);
+            EventBus.Unsubscribe<InventorySlotChangedEvent>(OnInventoryChanged);
         }
 
         private void Start()
@@ -25,20 +25,21 @@ namespace Project.UI
             Refresh();
         }
 
-        private void OnInventoryChanged(InventoryChangedEvent evt)
+        private void OnInventoryChanged(InventorySlotChangedEvent evt)
         {
             Refresh();
         }
 
         private void Refresh()
         {
-            var inventory = ServiceLocator.Instance.Get<IInventoryService>();
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
             var sb = new StringBuilder();
 
-            foreach (var kvp in inventory.GetAllParts())
+            for (int i = 0; i < inventory.SlotCount; i++)
             {
-                if (kvp.Key == null) continue;
-                sb.AppendLine($"{kvp.Key.partName} x{kvp.Value}");
+                var slot = inventory.GetSlot(i);
+                if (slot.IsEmpty) continue;
+                sb.AppendLine($"{slot.Item.itemName} x{slot.Count}");
             }
 
             inventoryText.text = sb.Length > 0 ? sb.ToString() : "Envanter bos";

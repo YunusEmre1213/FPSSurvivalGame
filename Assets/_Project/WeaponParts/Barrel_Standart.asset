@@ -12,8 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6a52fa7befa3266498e8411c24451912, type: 3}
   m_Name: Barrel_Standart
   m_EditorClassIdentifier: Assembly-CSharp::Project.Data.WeaponPartData
-  partId: Barrel_Standart
-  partName: Standart Namlu
+  itemId: Barrel_Standart
+  itemName: Standart Namlu
+  icon: {fileID: 0}
+  description: 
+  maxStackSize: 20
   partType: 0
   damageModifier: 5
   accuracyModifier: 0.05
