@@ -12,5 +12,6 @@ namespace Project.Gameplay.Player
         bool InteractPressedThisFrame { get; }
         bool PausePressedThisFrame { get; }
         bool InventoryPressedThisFrame { get; }
+        bool ReloadPressedThisFrame { get; }
     }
 }

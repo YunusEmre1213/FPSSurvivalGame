@@ -25,7 +25,7 @@ namespace Project.Gameplay.Enemies
         {
             float distance = _enemy.DistanceToPlayer();
 
-            if (distance > _enemy.AttackRange)
+            if (distance > _enemy.AttackRange || !_enemy.CanSeePlayer())
             {
                 _enemy.ChangeState(new EnemyChaseState(_enemy));
                 return;

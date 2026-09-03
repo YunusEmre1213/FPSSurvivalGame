@@ -1,8 +1,11 @@
+using UnityEngine;
+
 namespace Project.Gameplay.Enemies
 {
     public class EnemyChaseState : IEnemyState
     {
         private readonly EnemyController _enemy;
+        private float _timeSinceLastSeen;
 
         public EnemyChaseState(EnemyController enemy)
         {
@@ -12,19 +15,23 @@ namespace Project.Gameplay.Enemies
         public void Enter()
         {
             _enemy.Agent.isStopped = false;
+            _timeSinceLastSeen = 0f;
         }
 
         public void Update()
         {
+            bool canSee = _enemy.CanSeePlayer();
             float distance = _enemy.DistanceToPlayer();
 
-            if (distance > _enemy.LoseTargetRange)
+            _timeSinceLastSeen = canSee ? 0f : _timeSinceLastSeen + Time.deltaTime;
+
+            if (distance > _enemy.LoseTargetRange || _timeSinceLastSeen > _enemy.SightMemoryDuration)
             {
-                _enemy.ChangeState(new EnemyPatrolState(_enemy));
+                _enemy.ChangeState(new EnemyInvestigateState(_enemy, _enemy.Player.position));
                 return;
             }
 
-            if (distance <= _enemy.AttackRange)
+            if (canSee && distance <= _enemy.AttackRange)
             {
                 _enemy.ChangeState(new EnemyAttackState(_enemy));
                 return;

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ca296fbdd294c5c40a4888e80d51230e, type: 3}
-  m_Name: Wood
+  m_Name: Ammo
   m_EditorClassIdentifier: Assembly-CSharp::Project.Data.ResourceData
-  itemId: Wood
-  itemName: Odun
-  icon: {fileID: 21300000, guid: 9e1a3a52804c4cc44967b6564f3903a7, type: 3}
+  itemId: Ammo
+  itemName: Mermi
+  icon: {fileID: 0}
   description: 
-  maxStackSize: 50
+  maxStackSize: 200

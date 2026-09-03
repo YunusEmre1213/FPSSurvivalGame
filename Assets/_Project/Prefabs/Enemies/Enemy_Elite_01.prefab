@@ -154,9 +154,17 @@ MonoBehaviour:
   detectionRange: 16
   attackRange: 2.5
   loseTargetRange: 22
+  fieldOfViewAngle: 110
+  eyeHeight: 1.5
+  sightMemoryDuration: 2
+  investigateDuration: 5
+  alertRadius: 15
   patrolRadius: 6
   patrolWaitTime: 2
-  health: 80
+  health: 100
   damage: 15
   attackCooldown: 2
   attackWindupTime: 1
+  fleeHealthThreshold: 0
+  fleeSafeDistance: 20
+  fleeSpeedMultiplier: 1.4

@@ -27,11 +27,12 @@ namespace Project.Gameplay.Player
 
         public bool InventoryPressedThisFrame => Input.GetKeyDown(KeyCode.I);
 
+        public bool ReloadPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.R);
+
         private void Awake()
         {
             ActiveInput.SetProvider(this);
         }
-
         private void Update()
         {
             if (UIInputLock.IsLocked)

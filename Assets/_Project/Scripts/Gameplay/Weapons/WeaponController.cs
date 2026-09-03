@@ -1,5 +1,7 @@
 using UnityEngine;
+using Project.Core;
 using Project.Data;
+using Project.Systems;
 using Project.Gameplay.Player;
 
 namespace Project.Gameplay.Weapons
@@ -9,7 +11,6 @@ namespace Project.Gameplay.Weapons
         SemiAuto,
         Automatic
     }
-
     public class WeaponController : MonoBehaviour
     {
         [Header("Bagimliliklar")]
@@ -21,6 +22,10 @@ namespace Project.Gameplay.Weapons
         [SerializeField] private WeaponPartData magazine;
         [SerializeField] private WeaponPartData stock;
 
+        [Header("Mermi")]
+        [Tooltip("Envanterde tutulan mermi esyasi - dolum bu ItemData'dan cekilir.")]
+        [SerializeField] private ResourceData ammoItem;
+
         [Header("Ates modu")]
         [SerializeField] private FireMode fireMode = FireMode.SemiAuto;
         [SerializeField] private float maxRange = 100f;
@@ -29,6 +34,7 @@ namespace Project.Gameplay.Weapons
         private WeaponAssembly _assembly;
         private IFireStrategy _fireStrategy;
         private WeaponStats _stats;
+        private int _currentMagazineAmmo;
 
         private void Awake()
         {
@@ -42,6 +48,8 @@ namespace Project.Gameplay.Weapons
                 ? new SemiAutoFireStrategy()
                 : new AutoFireStrategy();
 
+            _currentMagazineAmmo = 0;
+
             Debug.Log($"[WeaponController] {baseWeapon.weaponName} hazir ({fireMode}) -> {_stats}");
         }
 
@@ -52,11 +60,18 @@ namespace Project.Gameplay.Weapons
             {
                 Debug.LogError("[WeaponController] ActiveInput.Provider hala null - sahnede InputSourceSelector var mi kontrol et.");
             }
+
+            EventBus.Publish(new AmmoChangedEvent(_currentMagazineAmmo, _stats.AmmoCapacity));
         }
 
         private void Update()
         {
             if (_input == null) return;
+
+            if (_input.ReloadPressedThisFrame)
+            {
+                TryReload();
+            }
 
             bool shouldFire = _fireStrategy.TryFire(_input.FireHeld, _input.FirePressedThisFrame, _stats.FireRate);
             if (shouldFire)
@@ -74,6 +89,9 @@ namespace Project.Gameplay.Weapons
             if (sightPart != null) _assembly.EquipPart(sightPart);
 
             _stats = _assembly.CalculateStats();
+            _currentMagazineAmmo = Mathf.Min(_currentMagazineAmmo, _stats.AmmoCapacity);
+
+            EventBus.Publish(new AmmoChangedEvent(_currentMagazineAmmo, _stats.AmmoCapacity));
             Debug.Log($"[WeaponController] Yeni kurulum uygulandi -> {_stats}");
         }
         public WeaponPartData GetEquippedPart(WeaponPartType slot)
@@ -81,8 +99,40 @@ namespace Project.Gameplay.Weapons
             return _assembly?.GetEquippedPart(slot);
         }
 
+        private void TryReload()
+        {
+            int needed = _stats.AmmoCapacity - _currentMagazineAmmo;
+            if (needed <= 0)
+            {
+                Debug.Log("[WeaponController] Sarjor zaten dolu.");
+                return;
+            }
+
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
+            int removed = inventory.RemoveItem(ammoItem, needed);
+
+            if (removed <= 0)
+            {
+                Debug.Log("[WeaponController] Envanterde mermi yok - once mermi bulman gerekiyor.");
+                return;
+            }
+
+            _currentMagazineAmmo += removed;
+            EventBus.Publish(new AmmoChangedEvent(_currentMagazineAmmo, _stats.AmmoCapacity));
+            Debug.Log($"[WeaponController] Doldurma: +{removed} mermi, sarjor: {_currentMagazineAmmo}/{_stats.AmmoCapacity}");
+        }
+
         private void AttemptFire()
         {
+            if (_currentMagazineAmmo <= 0)
+            {
+                Debug.Log("[WeaponController] *tik* - sarjor bos, R ile doldur.");
+                return;
+            }
+
+            _currentMagazineAmmo--;
+            EventBus.Publish(new AmmoChangedEvent(_currentMagazineAmmo, _stats.AmmoCapacity));
+
             if (Random.value < _stats.MalfunctionChance)
             {
                 Debug.Log("[WeaponController] ARIZA! Silah sikisti, atis iptal.");

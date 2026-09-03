@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.AI;
+using Project.Core;
 
 namespace Project.Gameplay.Enemies
 {
@@ -22,8 +23,9 @@ namespace Project.Gameplay.Enemies
 
         public void Update()
         {
-            if (_enemy.DistanceToPlayer() <= _enemy.DetectionRange)
+            if (_enemy.CanSeePlayer())
             {
+                EventBus.Publish(new EnemyAlertEvent(_enemy.Player.position, _enemy.gameObject));
                 _enemy.ChangeState(new EnemyChaseState(_enemy));
                 return;
             }
