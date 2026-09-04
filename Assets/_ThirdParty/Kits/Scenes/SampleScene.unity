@@ -4608,7 +4608,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 968557167}
   m_Father: {fileID: 1642044870}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &330585547
@@ -17533,6 +17534,37 @@ MeshFilter:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 968426675}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &968557166
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 968557167}
+  m_Layer: 0
+  m_Name: WeaponSocket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &968557167
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 968557166}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.3, y: -0.3, z: 0.5}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 330585546}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &978391563
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -18750,6 +18782,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Project.Gameplay.Weapons.WeaponController
   fireCamera: {fileID: 330585545}
+  weaponSocket: {fileID: 968557167}
   baseWeapon: {fileID: 11400000, guid: 1332af1c734672245b6c8e5f8dcbe0cd, type: 2}
   barrel: {fileID: 11400000, guid: 04994fcf0e956304b88f6463e690aa50, type: 2}
   magazine: {fileID: 11400000, guid: d57957db71cc45b438c08a3321fd9299, type: 2}
@@ -18762,7 +18795,25 @@ MonoBehaviour:
   fireSound: {fileID: 8300000, guid: 3d148d2f73d01d24aaa09107572add58, type: 3}
   emptySound: {fileID: 8300000, guid: 4cf1f6eb05f89314390d6edb7052ad9c, type: 3}
   reloadSound: {fileID: 8300000, guid: df8f0dfca9b5e3145ba98193ba7b5193, type: 3}
-  noiseRadius: 25
+  recoilKickPosition: {x: 0, y: 0, z: -0.06}
+  recoilKickRotation: {x: -6, y: 0, z: 0}
+  recoilRecoverySpeed: 10
+  walkBobSpeed: 8
+  walkBobAmplitude: 0.015
+  sprintBobSpeed: 13
+  sprintBobAmplitude: 0.03
+  bobBlendSpeed: 6
+  fireAnimationTrigger: Fire
+  reloadAnimationTrigger: Reload
+  muzzleFlashPrefab: {fileID: 1782395880954752, guid: 3dd9cf2e209c504448f1c4c6835675cf, type: 3}
+  muzzlePointName: MuzzlePoint
+  magazineDropPrefab: {fileID: 7144065096703563996, guid: b5c250cf857e87546bfae19a751f3c92, type: 3}
+  magazinePointName: MagazinePoint
+  magazineDropForce: 1.5
+  magazineDespawnDelay: 3
+  reloadTiltDuration: 0.9
+  reloadTiltPosition: {x: -0.08, y: -0.15, z: 0}
+  reloadTiltRotation: {x: 25, y: 0, z: -18}
 --- !u!114 &1065371725
 MonoBehaviour:
   m_ObjectHideFlags: 0
