@@ -69,22 +69,28 @@ namespace Project.Gameplay.Enemies
 
         private EnemyStateMachine _stateMachine;
         private float _maxHealth;
+        private float _baseHealth;
+        private float _baseDamage;
 
         private void OnEnable()
         {
             EventBus.Subscribe<EnemyAlertEvent>(OnEnemyAlert);
+            EventBus.Subscribe<NoiseEvent>(OnNoiseHeard);
         }
 
         private void OnDisable()
         {
             EventBus.Unsubscribe<EnemyAlertEvent>(OnEnemyAlert);
+            EventBus.Unsubscribe<NoiseEvent>(OnNoiseHeard);
         }
 
         private void OnEnemyAlert(EnemyAlertEvent evt)
         {
-            if (evt.Source == gameObject) return;
+            if (evt.Source == gameObject) return; 
 
-            if (_stateMachine.CurrentState is EnemyChaseState || _stateMachine.CurrentState is EnemyAttackState)
+            if (_stateMachine.CurrentState is EnemyChaseState
+                || _stateMachine.CurrentState is EnemyAttackState
+                || _stateMachine.CurrentState is EnemyFleeState)
             {
                 return;
             }
@@ -96,12 +102,30 @@ namespace Project.Gameplay.Enemies
             }
         }
 
+        private void OnNoiseHeard(NoiseEvent evt)
+        {
+            if (_stateMachine.CurrentState is EnemyChaseState
+                || _stateMachine.CurrentState is EnemyAttackState
+                || _stateMachine.CurrentState is EnemyFleeState)
+            {
+                return;
+            }
+
+            float distance = Vector3.Distance(transform.position, evt.Position);
+            if (distance <= evt.Radius)
+            {
+                ChangeState(new EnemyInvestigateState(this, evt.Position));
+            }
+        }
+
         private void Awake()
         {
             Agent = GetComponent<NavMeshAgent>();
             SpawnPosition = transform.position;
             _stateMachine = new EnemyStateMachine();
             _maxHealth = health;
+            _baseHealth = health;
+            _baseDamage = damage;
 
             if (player == null)
             {
@@ -136,6 +160,12 @@ namespace Project.Gameplay.Enemies
 
             _stateMachine.ChangeState(new EnemyPatrolState(this));
         }
+        public void ApplyDifficultyScale(float multiplier)
+        {
+            health = _baseHealth * multiplier;
+            damage = _baseDamage * multiplier;
+            _maxHealth = health;
+        }
 
         private void Update()
         {
@@ -165,7 +195,7 @@ namespace Project.Gameplay.Enemies
             {
                 if (!hit.collider.CompareTag("Player"))
                 {
-                    return false; 
+                    return false;
                 }
             }
 

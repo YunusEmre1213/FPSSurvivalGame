@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using Project.Core;
+using Project.Data;
 using Project.Systems;
 using Project.Gameplay.Player;
 
@@ -11,6 +13,7 @@ namespace Project.UI
         [SerializeField] private GameObject panelRoot;
         [SerializeField] private Transform slotContainer;
         [SerializeField] private GameObject slotUIPrefab;
+        [SerializeField] private PlayerNeeds playerNeeds;
 
         private readonly List<SlotUI> _slotUIs = new List<SlotUI>();
         private bool _isOpen;
@@ -41,7 +44,13 @@ namespace Project.UI
             for (int i = 0; i < inventory.SlotCount; i++)
             {
                 var instance = Instantiate(slotUIPrefab, slotContainer);
-                _slotUIs.Add(instance.GetComponent<SlotUI>());
+                var slotUI = instance.GetComponent<SlotUI>();
+                _slotUIs.Add(slotUI);
+
+                var button = instance.GetComponent<Button>();
+
+                int slotIndex = i; 
+                button.onClick.AddListener(() => OnSlotClicked(slotIndex));
             }
         }
 
@@ -56,7 +65,7 @@ namespace Project.UI
             }
             else if (!UIInputLock.IsLocked)
             {
-                
+               
                 Open();
             }
         }
@@ -66,6 +75,20 @@ namespace Project.UI
             if (_isOpen)
             {
                 RefreshAll();
+            }
+        }
+
+        private void OnSlotClicked(int slotIndex)
+        {
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
+            var slot = inventory.GetSlot(slotIndex);
+
+            if (slot.IsEmpty) return;
+
+            if (slot.Item is ConsumableData consumable && playerNeeds != null)
+            {
+                playerNeeds.Consume(consumable);
+                inventory.RemoveItem(consumable, 1); 
             }
         }
 

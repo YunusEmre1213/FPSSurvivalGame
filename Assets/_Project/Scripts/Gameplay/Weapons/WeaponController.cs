@@ -3,6 +3,7 @@ using Project.Core;
 using Project.Data;
 using Project.Systems;
 using Project.Gameplay.Player;
+using Project.Gameplay.Enemies;
 
 namespace Project.Gameplay.Weapons
 {
@@ -29,6 +30,19 @@ namespace Project.Gameplay.Weapons
         [Header("Ates modu")]
         [SerializeField] private FireMode fireMode = FireMode.SemiAuto;
         [SerializeField] private float maxRange = 100f;
+        [Tooltip("Her atisin yaydigi gurultu yaricapi - bu mesafedeki dusmanlar seni gormeseler bile duyup arastirmaya gelir.")]
+        [SerializeField] private float gunshotNoiseRadius = 25f;
+
+        [Header("Ses")]
+        [SerializeField] private AudioSource weaponAudioSource;
+        [SerializeField] private AudioClip fireSound;
+        [Tooltip("Sarjor bosken tetige basinca calinan 'tik' sesi.")]
+        [SerializeField] private AudioClip emptySound;
+        [SerializeField] private AudioClip reloadSound;
+
+        [Header("Ses (dusman farkindaligi)")]
+        [Tooltip("Basarili bir atisin duyulabilecegi yaricap - bu alandaki dusmanlar seni gormeseler bile arastirmaya gelir.")]
+        [SerializeField] private float noiseRadius = 25f;
 
         private IInputProvider _input;
         private WeaponAssembly _assembly;
@@ -119,6 +133,7 @@ namespace Project.Gameplay.Weapons
 
             _currentMagazineAmmo += removed;
             EventBus.Publish(new AmmoChangedEvent(_currentMagazineAmmo, _stats.AmmoCapacity));
+            PlaySound(reloadSound);
             Debug.Log($"[WeaponController] Doldurma: +{removed} mermi, sarjor: {_currentMagazineAmmo}/{_stats.AmmoCapacity}");
         }
 
@@ -127,17 +142,21 @@ namespace Project.Gameplay.Weapons
             if (_currentMagazineAmmo <= 0)
             {
                 Debug.Log("[WeaponController] *tik* - sarjor bos, R ile doldur.");
+                PlaySound(emptySound);
                 return;
             }
 
             _currentMagazineAmmo--;
             EventBus.Publish(new AmmoChangedEvent(_currentMagazineAmmo, _stats.AmmoCapacity));
+            EventBus.Publish(new NoiseEvent(transform.position, gunshotNoiseRadius));
+            PlaySound(fireSound);
 
             if (Random.value < _stats.MalfunctionChance)
             {
                 Debug.Log("[WeaponController] ARIZA! Silah sikisti, atis iptal.");
-                return;
+                return; 
             }
+            EventBus.Publish(new NoiseEvent(transform.position, noiseRadius));
 
             var origin = fireCamera.transform.position;
             var direction = fireCamera.transform.forward;
@@ -158,6 +177,14 @@ namespace Project.Gameplay.Weapons
             else
             {
                 Debug.Log("[WeaponController] Iskalandi (hicbir seye isabet etmedi)");
+            }
+        }
+
+        private void PlaySound(AudioClip clip)
+        {
+            if (weaponAudioSource != null && clip != null)
+            {
+                weaponAudioSource.PlayOneShot(clip);
             }
         }
     }

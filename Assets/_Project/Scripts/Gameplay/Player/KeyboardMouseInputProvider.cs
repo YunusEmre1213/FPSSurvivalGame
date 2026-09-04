@@ -29,10 +29,15 @@ namespace Project.Gameplay.Player
 
         public bool ReloadPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.R);
 
+        public bool SprintHeld => !UIInputLock.IsLocked && Input.GetKey(KeyCode.LeftShift);
+
+        public bool JumpPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.Space);
+
         private void Awake()
         {
             ActiveInput.SetProvider(this);
         }
+
         private void Update()
         {
             if (UIInputLock.IsLocked)

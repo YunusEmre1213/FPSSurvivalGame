@@ -5,11 +5,19 @@ using Project.Systems;
 
 namespace Project.UI
 {
+    [RequireComponent(typeof(Button))]
     public class SlotUI : MonoBehaviour
     {
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text nameText;
         [SerializeField] private TMP_Text countText;
+
+        public Button Button { get; private set; }
+
+        private void Awake()
+        {
+            Button = GetComponent<Button>();
+        }
 
         public void Refresh(InventorySlot slot)
         {
