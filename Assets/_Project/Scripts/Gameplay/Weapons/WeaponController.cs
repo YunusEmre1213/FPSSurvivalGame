@@ -98,6 +98,7 @@ namespace Project.Gameplay.Weapons
         private float _reloadTimer;
         private Vector3 _reloadPosOffset;
         private Vector3 _reloadRotOffset;
+        private bool _isEquipped = true; 
 
         private void Awake()
         {
@@ -133,21 +134,32 @@ namespace Project.Gameplay.Weapons
         {
             if (_input == null) return;
 
-            if (_input.ReloadPressedThisFrame)
+            if (_isEquipped)
             {
-                TryReload();
-            }
+                if (_input.ReloadPressedThisFrame)
+                {
+                    TryReload();
+                }
 
-            bool shouldFire = _fireStrategy.TryFire(_input.FireHeld, _input.FirePressedThisFrame, _stats.FireRate);
-            if (shouldFire)
-            {
-                AttemptFire();
+                bool shouldFire = _fireStrategy.TryFire(_input.FireHeld, _input.FirePressedThisFrame, _stats.FireRate);
+                if (shouldFire)
+                {
+                    AttemptFire();
+                }
             }
 
             UpdateRecoilRecovery();
             UpdateWeaponBob();
             UpdateReloadTilt();
             ApplyWeaponTransform();
+        }
+        public void SetEquipped(bool equipped)
+        {
+            _isEquipped = equipped;
+            if (_weaponModelInstance != null)
+            {
+                _weaponModelInstance.SetActive(equipped);
+            }
         }
         public void ApplyAssembly(WeaponPartData barrelPart, WeaponPartData magazinePart,
             WeaponPartData stockPart, WeaponPartData sightPart)
@@ -297,7 +309,6 @@ namespace Project.Gameplay.Weapons
             _recoilPosOffset = Vector3.Lerp(_recoilPosOffset, Vector3.zero, recoilRecoverySpeed * Time.deltaTime);
             _recoilRotOffset = Vector3.Lerp(_recoilRotOffset, Vector3.zero, recoilRecoverySpeed * Time.deltaTime);
         }
-
         private void UpdateWeaponBob()
         {
             bool isMoving = _input.MoveInput.sqrMagnitude > 0.01f;
@@ -318,7 +329,6 @@ namespace Project.Gameplay.Weapons
                 Mathf.Sin(_bobTimer * 2f) * _bobAmplitude * 0.5f,
                 0f);
         }
-
         private void ApplyWeaponTransform()
         {
             if (_weaponModelInstance == null) return;
@@ -360,8 +370,8 @@ namespace Project.Gameplay.Weapons
             if (_reloadTimer > 0f)
             {
                 _reloadTimer -= Time.deltaTime;
-                float t = Mathf.Clamp01(_reloadTimer / reloadTiltDuration); 
-                float curve = Mathf.Sin(t * Mathf.PI); 
+                float t = Mathf.Clamp01(_reloadTimer / reloadTiltDuration); // 1 -> 0
+                float curve = Mathf.Sin(t * Mathf.PI); // 0 -> 1 -> 0
 
                 _reloadPosOffset = reloadTiltPosition * curve;
                 _reloadRotOffset = reloadTiltRotation * curve;

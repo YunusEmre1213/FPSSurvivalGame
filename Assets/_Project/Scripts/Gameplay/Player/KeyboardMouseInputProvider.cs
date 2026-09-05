@@ -29,9 +29,15 @@ namespace Project.Gameplay.Player
 
         public bool ReloadPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.R);
 
+        public bool FlashlightToggledThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.L);
+
         public bool SprintHeld => !UIInputLock.IsLocked && Input.GetKey(KeyCode.LeftShift);
 
         public bool JumpPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.Space);
+
+        public bool EquipWeaponPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.Alpha1);
+
+        public bool EquipFlashlightPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.Alpha2);
 
         private void Awake()
         {

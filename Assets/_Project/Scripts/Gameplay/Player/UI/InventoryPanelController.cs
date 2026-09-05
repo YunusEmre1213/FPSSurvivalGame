@@ -5,6 +5,7 @@ using Project.Core;
 using Project.Data;
 using Project.Systems;
 using Project.Gameplay.Player;
+using Project.Gameplay.Items;
 
 namespace Project.UI
 {
@@ -14,6 +15,7 @@ namespace Project.UI
         [SerializeField] private Transform slotContainer;
         [SerializeField] private GameObject slotUIPrefab;
         [SerializeField] private PlayerNeeds playerNeeds;
+        [SerializeField] private FlashlightController flashlightController;
 
         private readonly List<SlotUI> _slotUIs = new List<SlotUI>();
         private bool _isOpen;
@@ -65,7 +67,6 @@ namespace Project.UI
             }
             else if (!UIInputLock.IsLocked)
             {
-               
                 Open();
             }
         }
@@ -89,6 +90,11 @@ namespace Project.UI
             {
                 playerNeeds.Consume(consumable);
                 inventory.RemoveItem(consumable, 1); 
+            }
+            else if (slot.Item is BatteryData battery && flashlightController != null)
+            {
+                flashlightController.Recharge(battery);
+                inventory.RemoveItem(battery, 1);
             }
         }
 
