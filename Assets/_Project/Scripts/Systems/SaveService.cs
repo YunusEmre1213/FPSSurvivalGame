@@ -110,6 +110,11 @@ namespace Project.Systems
             Debug.Log($"[SaveService] Yukleme tamamlandi: {_savePath}");
         }
 
+        public bool HasSaveFile()
+        {
+            return File.Exists(_savePath);
+        }
+
         private WeaponPartData ResolvePart(string itemId)
         {
             if (string.IsNullOrEmpty(itemId)) return null;

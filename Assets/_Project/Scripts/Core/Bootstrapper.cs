@@ -16,6 +16,15 @@ namespace Project.Core
             RegisterServices();
         }
 
+        private void Start()
+        {
+            if (PlayerPrefs.GetInt(GameFlowKeys.ShouldLoadSaveOnStart, 0) == 1)
+            {
+                ServiceLocator.Instance.Get<ISaveService>().Load();
+                PlayerPrefs.SetInt(GameFlowKeys.ShouldLoadSaveOnStart, 0);
+            }
+        }
+
         private void RegisterServices()
         {
             ServiceLocator.Instance.Register<IItemInventoryService>(new ItemInventoryService(24));

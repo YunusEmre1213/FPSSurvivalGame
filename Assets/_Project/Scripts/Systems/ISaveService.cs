@@ -6,5 +6,6 @@ namespace Project.Systems
     {
         void Save();
         void Load();
+        bool HasSaveFile();
     }
 }
