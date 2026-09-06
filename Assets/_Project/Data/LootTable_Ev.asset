@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fd4ca67278d2fed4d8ffecfa2cdc248a, type: 3}
+  m_Name: LootTable_Ev
+  m_EditorClassIdentifier: Assembly-CSharp::Project.Data.LootTableData
+  entries:
+  - item: {fileID: 11400000, guid: 26bd88f77b3458343aa805a232e70e2d, type: 2}
+    weight: 40
+    minAmount: 1
+    maxAmount: 2
+  - item: {fileID: 11400000, guid: 3d1d5b694fb9e2c4f9306aac5ee568f3, type: 2}
+    weight: 25
+    minAmount: 1
+    maxAmount: 1
+  - item: {fileID: 11400000, guid: 37830e95e7b1cd442a88343e6e93be16, type: 2}
+    weight: 20
+    minAmount: 5
+    maxAmount: 15
+  - item: {fileID: 11400000, guid: 7933565f0f29eff439ac6c3b137eb89f, type: 2}
+    weight: 10
+    minAmount: 1
+    maxAmount: 1
+  rollCount: 2

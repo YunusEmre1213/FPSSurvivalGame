@@ -21,7 +21,7 @@ namespace Project.Core
             if (PlayerPrefs.GetInt(GameFlowKeys.ShouldLoadSaveOnStart, 0) == 1)
             {
                 ServiceLocator.Instance.Get<ISaveService>().Load();
-                PlayerPrefs.SetInt(GameFlowKeys.ShouldLoadSaveOnStart, 0);
+                PlayerPrefs.SetInt(GameFlowKeys.ShouldLoadSaveOnStart, 0); 
             }
         }
 
@@ -30,6 +30,7 @@ namespace Project.Core
             ServiceLocator.Instance.Register<IItemInventoryService>(new ItemInventoryService(24));
             ServiceLocator.Instance.Register<ISaveService>(new SaveService(itemDatabase));
             ServiceLocator.Instance.Register<IKeyItemService>(new KeyItemService());
+            ServiceLocator.Instance.Register<IMissionService>(new MissionService());
         }
 
         private void OnApplicationQuit()

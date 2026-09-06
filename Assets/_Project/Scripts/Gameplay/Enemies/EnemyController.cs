@@ -195,7 +195,7 @@ namespace Project.Gameplay.Enemies
             {
                 if (!hit.collider.CompareTag("Player"))
                 {
-                    return false;
+                    return false; 
                 }
             }
 
@@ -224,7 +224,6 @@ namespace Project.Gameplay.Enemies
                 Die();
                 return;
             }
-
             bool alreadyFleeing = _stateMachine.CurrentState is EnemyFleeState;
             if (!alreadyFleeing && fleeHealthThreshold > 0f && health <= _maxHealth * fleeHealthThreshold)
             {
@@ -235,6 +234,7 @@ namespace Project.Gameplay.Enemies
         private void Die()
         {
             Debug.Log($"[EnemyController] {gameObject.name} oldu.");
+            EventBus.Publish(new EnemyDiedEvent(transform.position));
             Destroy(gameObject);
         }
     }
