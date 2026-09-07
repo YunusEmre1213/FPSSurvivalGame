@@ -27,6 +27,7 @@ Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır
 ## Öne Çıkan Özellikler
 
 ### Silah Sistemi
+
 - Veri-odaklı silah montaj sistemi (`WeaponBaseData` + değiştirilebilir `WeaponPartData` parçaları: Namlu / Şarjör / Dipçik / Nişangah)
 - "Bozulmuş" parçalar arıza riski taşır — parça kalitesi doğrudan güvenilirliği etkiler
 - Tükenebilir mermi sistemi, gerçek doldurma mekaniği
@@ -35,6 +36,7 @@ Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır
 - Mimari, yeni silah eklemeyi kod değiştirmeden mümkün kılacak şekilde tasarlandı (yeni `WeaponBaseData` + model prefabı yeterli)
 
 ### Düşman Yapay Zekası
+
 - State Machine tabanlı davranış (Devriye / Kovalama / Saldırı / Araştırma / Kaçış)
 - **Gerçek algılama:** sadece mesafe değil, görüş konisi (FOV) + `Physics.Linecast` ile gerçek görüş hattı kontrolü
 - **İşitsel algılama:** silah sesi gibi olaylar, menzildeki düşmanları görmeden de uyarabiliyor
@@ -43,17 +45,20 @@ Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır
 - Düşman, oyuncunun **anlık konumunu bilmiyor** — sadece son gördüğü/duyduğu yeri araştırıyor (omniscient olmayan, algı tabanlı bir yapı)
 
 ### Hayatta Kalma Mekanikleri
+
 - Açlık / susuzluk / dayanıklılık (stamina) sistemleri, gerçek zamanlı tükenme
 - Fener + pil sistemi — pil durumu bir arayüz çubuğuyla değil, **ışığın kendi davranışıyla** (sönükleşme, titreme) hissettiriliyor
 - Silah ile fener arasında geçiş sistemi — ikisi aynı anda elde tutulamıyor (bilinçli bir tasarım kısıtı, gerçek bir taktik gerilim yaratıyor)
 - Gün/gece döngüsü, özel bir Shader Graph gökyüzü geçiş shader'ıyla desteklenmiş
 
 ### Envanter ve Görev Sistemleri
+
 - Genel, slot tabanlı envanter mimarisi — tüm eşya türleri (silah parçası, kaynak, tüketilebilir, pil) aynı temel sınıftan (`ItemData`) türer
 - Ağırlıklı rastgelelik tabanlı loot sistemi (`LootTableData`) — konteynerlere elle eşya yerleştirmek yerine veri-odaklı, tekrar kullanılabilir tablolar
 - Sıralı hedeflerden oluşan görev sistemi, mevcut sistemlere (envanter, düşman ölümü, tetikleyici alanlar) `EventBus` üzerinden bağlanıyor
 
 ### Diğer
+
 - JSON tabanlı kayıt/yükleme sistemi
 - Ana menü (Yeni Oyun / Devam Et / Çıkış), sahne geçişleri arasında güvenli servis başlatma sırası
 - Havuzlama (object pooling) ile düşman yönetimi
@@ -62,24 +67,84 @@ Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır
 
 Proje boyunca tutarlı şekilde uygulanan tasarım kalıpları:
 
-| Kalıp | Kullanım Alanı |
-|---|---|
+| Kalıp                                       | Kullanım Alanı                                                                                                                            |
+| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | **Event Bus** (statik, tip güvenli pub/sub) | Sistemler arası, birbirinden habersiz iletişim (ör. bir düşman öldüğünde görev sistemi haberdar oluyor, ama ikisi birbirini hiç bilmiyor) |
-| **Service Locator** + `IGameService` | Envanter, kayıt, görev, anahtar eşya gibi servislerin merkezi yönetimi |
-| **State Pattern** | Düşman AI davranışları, gün/gece döngüsü fazları |
-| **Strategy Pattern** | Ateş modları (tek atım / otomatik) |
-| **Dependency Inversion** | Girdi sistemi (`IInputProvider` soyutlaması) |
-| **Veri-Odaklı Tasarım** (ScriptableObject) | Silah parçaları, kaynaklar, tüketilebilirler, görevler, loot tabloları — hepsi kod değişmeden Inspector'dan tasarlanabilir |
-| **Object Pooling** | Düşman spawn sistemi |
+| **Service Locator** + `IGameService`        | Envanter, kayıt, görev, anahtar eşya gibi servislerin merkezi yönetimi                                                                    |
+| **State Pattern**                           | Düşman AI davranışları, gün/gece döngüsü fazları                                                                                          |
+| **Strategy Pattern**                        | Ateş modları (tek atım / otomatik)                                                                                                        |
+| **Dependency Inversion**                    | Girdi sistemi (`IInputProvider` soyutlaması)                                                                                              |
+| **Veri-Odaklı Tasarım** (ScriptableObject)  | Silah parçaları, kaynaklar, tüketilebilirler, görevler, loot tabloları — hepsi kod değişmeden Inspector'dan tasarlanabilir                |
+| **Object Pooling**                          | Düşman spawn sistemi                                                                                                                      |
 
-## Çözülen Teknik Zorluklar
+### Sistem Mimarisi
 
-Geliştirme sürecinde karşılaşılan ve çözülen birkaç ilginç problem:
+```mermaid
+graph TD
+    Bootstrapper -->|kayıt eder| ServiceLocator
+    ServiceLocator --> InventoryService[IItemInventoryService]
+    ServiceLocator --> SaveService[ISaveService]
+    ServiceLocator --> KeyItemService[IKeyItemService]
+    ServiceLocator --> MissionService[IMissionService]
+    ServiceLocator --> DayNightService[IDayNightService]
 
-- **Unity'nin Awake() sıralama garantisi olmaması:** Devre dışı bir hiyerarşiye doğan objelerin `Awake()`'i ertelenir; servis bağımlılıkları bu yüzden hep `Start()` aşamasında çözülüyor.
-- **Prosedürel geri bildirim, hazır animasyon olmadan:** Kullanılan ücretsiz silah/fener modellerinde doldurma animasyonu bulunmuyordu — bunun yerine matematiksel (yarı-sinüs eğrisi tabanlı) bir "eğilme" animasyonu kodla üretildi.
-- **UI Raycast Target çakışması:** Bir butonun içindeki dekoratif metin/ikon elemanlarının "Raycast Target"ı açık kalırsa tıklamaları kendi üzerlerine çekebiliyor — envanter panelinde tespiti uzun süren, mesafeyle büyüyen bir tıklama kayması hatasına yol açmıştı; kök neden bulunup kalıcı olarak düzeltildi.
-- **Havuzlanan (pooled) objelerde durum sızıntısı:** Düşman zorluk çarpanının, tekrar kullanılan (havuzdan gelen) düşmanlarda üst üste binmemesi için taban stat'lar ayrı tutuldu.
+    Player --> FirstPersonController
+    Player --> WeaponController
+    Player --> FlashlightController
+    Player --> EquipmentController
+    Player --> PlayerNeeds
+    Player --> PlayerHealth
+    Player --> PlayerStamina
+
+    EquipmentController -->|denetler| WeaponController
+    EquipmentController -->|denetler| FlashlightController
+
+    WeaponController -->|yayınlar| EventBus
+    EnemyController -->|dinler ve yayınlar| EventBus
+    MissionService -->|dinler| EventBus
+```
+
+### Düşman AI Karar Akışı
+
+```mermaid
+stateDiagram-v2
+    [*] --> Patrol
+    Patrol --> Chase: Görüş konisi + görüş hattı ile gördü
+    Patrol --> Investigate: Uyarı/gürültü aldı
+    Chase --> Attack: Saldırı menzilinde ve görüyor
+    Chase --> Investigate: Görüşü kaybetti
+    Investigate --> Chase: Tekrar gördü
+    Investigate --> Patrol: Süre doldu, bulamadı
+    Attack --> Chase: Menzil dışına çıktı
+    Chase --> Flee: Can eşiğin altına düştü
+    Attack --> Flee: Can eşiğin altına düştü
+    Patrol --> Flee: Can eşiğin altına düştü
+    Flee --> Patrol: Güvenli mesafeye ulaştı
+```
+
+### Event-Driven Mimari Örneği
+
+Aşağıdaki akış, `WeaponController` ile `EnemyController`'ın **birbirini hiç tanımadığını**, tamamen `EventBus` üzerinden, decoupled şekilde iletişim kurduğunu gösteriyor:
+
+```mermaid
+sequenceDiagram
+    participant Oyuncu
+    participant WeaponController
+    participant EventBus
+    participant EnemyController
+    participant MissionService
+
+    Oyuncu->>WeaponController: Ateş et
+    WeaponController->>EventBus: NoiseEvent yayınla
+    EventBus-->>EnemyController: NoiseEvent'i ilet
+    EnemyController->>EnemyController: Menzildeyse Investigate'e geç
+
+    Note over WeaponController,EnemyController: İki sistem birbirini hiç referans almıyor
+
+    EnemyController->>EventBus: EnemyDiedEvent yayınla (öldüğünde)
+    EventBus-->>MissionService: EnemyDiedEvent'i ilet
+    MissionService->>MissionService: KillEnemies hedefini ilerlet
+```
 
 ## Kullanılan Teknolojiler
 
@@ -97,46 +162,20 @@ Geliştirme sürecinde karşılaşılan ve çözülen birkaç ilginç problem:
 
 ## Kontroller
 
-| Tuş | Aksiyon |
-|---|---|
-| `W A S D` | Hareket |
-| `Shift` (basılı tut) | Koşma |
-| `Space` | Zıplama |
-| `Sol Fare` | Ateş etme |
-| `R` | Doldurma |
-| `1` / `2` | Silah / Fener arasında geçiş |
-| `L` | Feneri aç/kapat |
-| `E` | Eşya toplama |
-| `F` | Etkileşim (workbench, kamp ateşi vb.) |
-| `I` | Envanteri aç/kapat |
-| `Esc` | Duraklat |
-
-## Krediler / Kullanılan Varlıklar
-
-Bu proje, aşağıdaki ücretsiz üçüncü parti varlıklardan yararlanmaktadır:
-
-- **Modern Guns: Handgun** — Nokobot (Unity Asset Store, ücretsiz)
-- **Footsteps - Essentials** — Nox_Sound (Unity Asset Store, ücretsiz)
-- **PBR doku setleri** — freepbr.com, cgbookcase.com
-- **Ücretsiz gerçekçi ortam dokuları** — shaded-spectrum (itch.io)
-- **URP Dynamic Grass** — Xwin Studio (itch.io)
-- **Free Fire VFX - URP** — Vefects (Unity Asset Store, ücretsiz)
-- **AllSkyFree** — gökyüzü küp haritaları (Unity Asset Store, ücretsiz)
-- Çeşitli ses efektleri — Pixabay (royalty-free)
-
-> **Not:** Bu liste geliştirme sürecinde kullanılan kaynakları kapsar; tam ve güncel bir liste için `Assets/_ThirdParty/` klasöründeki paket bazlı lisans dosyalarına bakılabilir.
-
-## Yol Haritası
-
-Proje bilinçli olarak bir "sistem vitrini" olarak konumlandırılmıştır — aşağıdaki maddeler, zaman ve kapsam elverdiğince değerlendirilecek olası genişletmelerdir:
-
-- [ ] İkinci bir silah türü
-- [ ] Gizlilik / sessiz etkisizleştirme mekaniği
-- [ ] Oyuncunun kendi yapısını inşa edebilmesi
-- [ ] Genişletilmiş çevre/level tasarımı
-- [ ] Unit test kapsamının genişletilmesi
-- [ ] Performans profilleme raporu
+| Tuş                  | Aksiyon                               |
+| -------------------- | ------------------------------------- |
+| `W A S D`            | Hareket                               |
+| `Shift` (basılı tut) | Koşma                                 |
+| `Space`              | Zıplama                               |
+| `Sol Fare`           | Ateş etme                             |
+| `R`                  | Doldurma                              |
+| `1` / `2`            | Silah / Fener arasında geçiş          |
+| `L`                  | Feneri aç/kapat                       |
+| `E`                  | Eşya toplama                          |
+| `F`                  | Etkileşim (workbench, kamp ateşi vb.) |
+| `I`                  | Envanteri aç/kapat                    |
+| `Esc`                | Duraklat                              |
 
 ---
 
-*Bu proje, bir portfolyo/CV çalışması olarak geliştirilmektedir.*
+_Bu proje, bir portfolyo/CV çalışması olarak geliştirilmektedir._
