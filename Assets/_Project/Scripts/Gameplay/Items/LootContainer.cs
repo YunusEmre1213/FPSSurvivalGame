@@ -72,6 +72,12 @@ namespace Project.Gameplay.Items
             {
                 visualToHideWhenLooted.SetActive(false);
             }
+
+            var objectiveTarget = GetComponent<ObjectiveTarget>();
+            if (objectiveTarget != null)
+            {
+                objectiveTarget.Trigger();
+            }
         }
     }
 }

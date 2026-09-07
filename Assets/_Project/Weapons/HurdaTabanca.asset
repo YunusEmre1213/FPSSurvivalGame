@@ -16,7 +16,7 @@ MonoBehaviour:
   weaponModelPrefab: {fileID: 7757947126742549135, guid: 5c59210965ffbcc4093fe99a29edb777, type: 3}
   modelPositionOffset: {x: 0, y: 0, z: 0}
   modelRotationOffset: {x: 0, y: 0, z: 0}
-  baseDamage: 10
+  baseDamage: 30
   baseAccuracy: 0.7
   baseFireRate: 2
   baseRecoil: 0.2
