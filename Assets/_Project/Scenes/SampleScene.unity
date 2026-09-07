@@ -7648,6 +7648,8 @@ MonoBehaviour:
   suruNightCount: 4
   eliteNightSpawnChance: 0.3
   eliteCountWhenSpawned: 1
+  difficultyScalePerNight: 0.12
+  usePooling: 0
 --- !u!4 &472752126
 Transform:
   m_ObjectHideFlags: 0

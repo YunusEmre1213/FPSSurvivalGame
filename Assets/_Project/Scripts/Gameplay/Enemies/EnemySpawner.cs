@@ -30,6 +30,14 @@ namespace Project.Gameplay.Enemies
         [SerializeField] private float eliteNightSpawnChance = 0.3f;
         [SerializeField] private int eliteCountWhenSpawned = 1;
 
+        [Header("Zorluk olcekleme")]
+        [Tooltip("Her tamamlanan gece basina stat artis orani. 0.12 = gece basina %12 daha guclu.")]
+        [SerializeField] private float difficultyScalePerNight = 0.12f;
+
+        [Header("Performans testi")]
+        [Tooltip("KAPATIRSAN pooling devre disi kalir - her spawn'da yeni Instantiate, her recycle'da Destroy. Sadece performans karsilastirmasi icin - normal oyunda ACIK kalmali.")]
+        [SerializeField] private bool usePooling = true;
+
         private readonly Dictionary<GameObject, Queue<GameObject>> _pools = new Dictionary<GameObject, Queue<GameObject>>();
         private readonly List<GameObject> _activeEnemies = new List<GameObject>();
         private readonly Dictionary<GameObject, GameObject> _instanceSourcePrefab = new Dictionary<GameObject, GameObject>();
@@ -73,14 +81,18 @@ namespace Project.Gameplay.Enemies
                 eliteCount = eliteCountWhenSpawned;
             }
 
-            Debug.Log($"[EnemySpawner] Faz: {phase} - {oncuCount} oncu, {suruCount} suru, {eliteCount} elit spawn ediliyor.");
+            var dayNightService = ServiceLocator.Instance.Get<IDayNightService>();
+            float difficultyMultiplier = 1f + (dayNightService.NightsSurvived * difficultyScalePerNight);
 
-            SpawnCount(oncuPrefab, oncuCount);
-            SpawnCount(suruPrefab, suruCount);
-            SpawnCount(elitePrefab, eliteCount);
+            Debug.Log($"[EnemySpawner] Faz: {phase} - {oncuCount} oncu, {suruCount} suru, {eliteCount} elit spawn ediliyor. " +
+                      $"(Zorluk carpani: {difficultyMultiplier:F2}x, {dayNightService.NightsSurvived}. gece tamamlandi)");
+
+            SpawnCount(oncuPrefab, oncuCount, difficultyMultiplier);
+            SpawnCount(suruPrefab, suruCount, difficultyMultiplier);
+            SpawnCount(elitePrefab, eliteCount, difficultyMultiplier);
         }
 
-        private void SpawnCount(GameObject prefab, int count)
+        private void SpawnCount(GameObject prefab, int count, float difficultyMultiplier)
         {
             if (prefab == null) return;
 
@@ -88,29 +100,46 @@ namespace Project.Gameplay.Enemies
             {
                 if (spawnPoints == null || spawnPoints.Length == 0) break;
                 var point = spawnPoints[Random.Range(0, spawnPoints.Length)];
-                SpawnFromPool(prefab, point.position, point.rotation);
+                SpawnFromPool(prefab, point.position, point.rotation, difficultyMultiplier);
             }
         }
 
-        private void SpawnFromPool(GameObject prefab, Vector3 position, Quaternion rotation)
+        private void SpawnFromPool(GameObject prefab, Vector3 position, Quaternion rotation, float difficultyMultiplier)
         {
-            if (!_pools.TryGetValue(prefab, out var pool))
-            {
-                pool = new Queue<GameObject>();
-                _pools[prefab] = pool;
-            }
-
             GameObject instance;
-            if (pool.Count > 0)
+            EnemyController enemyController;
+
+            if (usePooling)
             {
-                instance = pool.Dequeue();
-                var enemyController = instance.GetComponent<EnemyController>();
-                enemyController.ResetForPool(position, rotation);
+                if (!_pools.TryGetValue(prefab, out var pool))
+                {
+                    pool = new Queue<GameObject>();
+                    _pools[prefab] = pool;
+                }
+
+                if (pool.Count > 0)
+                {
+                    instance = pool.Dequeue();
+                    enemyController = instance.GetComponent<EnemyController>();
+                    enemyController.ResetForPool(position, rotation);
+                }
+                else
+                {
+                    instance = Instantiate(prefab, position, rotation);
+                    _instanceSourcePrefab[instance] = prefab;
+                    enemyController = instance.GetComponent<EnemyController>();
+                }
             }
             else
             {
+                
                 instance = Instantiate(prefab, position, rotation);
-                _instanceSourcePrefab[instance] = prefab;
+                enemyController = instance.GetComponent<EnemyController>();
+            }
+
+            if (enemyController != null)
+            {
+                enemyController.ApplyDifficultyScale(difficultyMultiplier);
             }
 
             _activeEnemies.Add(instance);
@@ -120,13 +149,21 @@ namespace Project.Gameplay.Enemies
         {
             foreach (var enemy in _activeEnemies)
             {
+             
                 if (enemy == null) continue;
 
-                enemy.SetActive(false);
-
-                if (_instanceSourcePrefab.TryGetValue(enemy, out var sourcePrefab))
+                if (usePooling)
                 {
-                    _pools[sourcePrefab].Enqueue(enemy);
+                    enemy.SetActive(false);
+                    if (_instanceSourcePrefab.TryGetValue(enemy, out var sourcePrefab))
+                    {
+                        _pools[sourcePrefab].Enqueue(enemy);
+                    }
+                }
+                else
+                {
+                   
+                    Destroy(enemy);
                 }
             }
             _activeEnemies.Clear();

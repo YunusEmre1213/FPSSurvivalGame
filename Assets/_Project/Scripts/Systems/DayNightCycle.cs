@@ -3,26 +3,27 @@ using Project.Core;
 
 namespace Project.Systems
 {
+
     public class DayNightCycle : MonoBehaviour, IDayNightService
     {
         [Header("Faz sureleri (saniye)")]
-        [Tooltip("Gunduz fazinin suresi.")]
-        [SerializeField] private float dayDuration = 420f;   // 7 dk
+        [Tooltip("Gunduz fazinin suresi")]
+        [SerializeField] private float dayDuration = 420f;   
 
-        [Tooltip("Alacakaranlik - kisa gecis fazi, yaratiklar tetikte toplanmaya basliyor.")]
-        [SerializeField] private float duskDuration = 60f;   // 1 dk
+        [Tooltip("Alacakaranlik - kisa gecis fazi")]
+        [SerializeField] private float duskDuration = 60f;   
 
-        [Tooltip("Gece fazi, en yuksek tehlike.")]
-        [SerializeField] private float nightDuration = 240f; // 4 dk
+        [Tooltip("Gece faz, en yuksek tehlike.")]
+        [SerializeField] private float nightDuration = 240f; 
 
         [Header("Test")]
-        [Tooltip("Isaretlenirse yukaridaki sureler testDurationMultiplier ile carpilir - gercek sureleri beklemeden hizli test icin.")]
         [SerializeField] private bool useTestDurations = false;
         [SerializeField] private float testDurationMultiplier = 0.05f;
 
         public DayNightPhase CurrentPhase { get; private set; } = DayNightPhase.Day;
         public float PhaseTimeRemaining => Mathf.Max(0f, _currentPhaseDuration - _elapsedInPhase);
         public float PhaseProgress01 => _currentPhaseDuration <= 0f ? 0f : Mathf.Clamp01(_elapsedInPhase / _currentPhaseDuration);
+        public int NightsSurvived { get; private set; }
 
         private float _elapsedInPhase;
         private float _currentPhaseDuration;
@@ -41,7 +42,6 @@ namespace Project.Systems
 
         public void Shutdown()
         {
-
         }
 
         private void Update()
@@ -61,7 +61,12 @@ namespace Project.Systems
             _elapsedInPhase = 0f;
             _currentPhaseDuration = GetDuration(CurrentPhase);
 
-            Debug.Log($"[DayNightCycle] Faz degisti: {previousPhase} -> {CurrentPhase}");
+            if (CurrentPhase == DayNightPhase.Night)
+            {
+                NightsSurvived++;
+            }
+
+            Debug.Log($"[DayNightCycle] Faz degisti: {previousPhase} -> {CurrentPhase} ({NightsSurvived}. gece)");
             EventBus.Publish(new DayNightPhaseChangedEvent(CurrentPhase));
         }
 
