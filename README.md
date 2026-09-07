@@ -72,15 +72,6 @@ Proje boyunca tutarlı şekilde uygulanan tasarım kalıpları:
 | **Veri-Odaklı Tasarım** (ScriptableObject) | Silah parçaları, kaynaklar, tüketilebilirler, görevler, loot tabloları — hepsi kod değişmeden Inspector'dan tasarlanabilir |
 | **Object Pooling** | Düşman spawn sistemi |
 
-## Çözülen Teknik Zorluklar
-
-Geliştirme sürecinde karşılaşılan ve çözülen birkaç ilginç problem:
-
-- **Unity'nin Awake() sıralama garantisi olmaması:** Devre dışı bir hiyerarşiye doğan objelerin `Awake()`'i ertelenir; servis bağımlılıkları bu yüzden hep `Start()` aşamasında çözülüyor.
-- **Prosedürel geri bildirim, hazır animasyon olmadan:** Kullanılan ücretsiz silah/fener modellerinde doldurma animasyonu bulunmuyordu — bunun yerine matematiksel (yarı-sinüs eğrisi tabanlı) bir "eğilme" animasyonu kodla üretildi.
-- **UI Raycast Target çakışması:** Bir butonun içindeki dekoratif metin/ikon elemanlarının "Raycast Target"ı açık kalırsa tıklamaları kendi üzerlerine çekebiliyor — envanter panelinde tespiti uzun süren, mesafeyle büyüyen bir tıklama kayması hatasına yol açmıştı; kök neden bulunup kalıcı olarak düzeltildi.
-- **Havuzlanan (pooled) objelerde durum sızıntısı:** Düşman zorluk çarpanının, tekrar kullanılan (havuzdan gelen) düşmanlarda üst üste binmemesi için taban stat'lar ayrı tutuldu.
-
 ## Kullanılan Teknolojiler
 
 - **Motor:** Unity 6 LTS (6000.3.22f1)
@@ -110,32 +101,6 @@ Geliştirme sürecinde karşılaşılan ve çözülen birkaç ilginç problem:
 | `F` | Etkileşim (workbench, kamp ateşi vb.) |
 | `I` | Envanteri aç/kapat |
 | `Esc` | Duraklat |
-
-## Krediler / Kullanılan Varlıklar
-
-Bu proje, aşağıdaki ücretsiz üçüncü parti varlıklardan yararlanmaktadır:
-
-- **Modern Guns: Handgun** — Nokobot (Unity Asset Store, ücretsiz)
-- **Footsteps - Essentials** — Nox_Sound (Unity Asset Store, ücretsiz)
-- **PBR doku setleri** — freepbr.com, cgbookcase.com
-- **Ücretsiz gerçekçi ortam dokuları** — shaded-spectrum (itch.io)
-- **URP Dynamic Grass** — Xwin Studio (itch.io)
-- **Free Fire VFX - URP** — Vefects (Unity Asset Store, ücretsiz)
-- **AllSkyFree** — gökyüzü küp haritaları (Unity Asset Store, ücretsiz)
-- Çeşitli ses efektleri — Pixabay (royalty-free)
-
-> **Not:** Bu liste geliştirme sürecinde kullanılan kaynakları kapsar; tam ve güncel bir liste için `Assets/_ThirdParty/` klasöründeki paket bazlı lisans dosyalarına bakılabilir.
-
-## Yol Haritası
-
-Proje bilinçli olarak bir "sistem vitrini" olarak konumlandırılmıştır — aşağıdaki maddeler, zaman ve kapsam elverdiğince değerlendirilecek olası genişletmelerdir:
-
-- [ ] İkinci bir silah türü
-- [ ] Gizlilik / sessiz etkisizleştirme mekaniği
-- [ ] Oyuncunun kendi yapısını inşa edebilmesi
-- [ ] Genişletilmiş çevre/level tasarımı
-- [ ] Unit test kapsamının genişletilmesi
-- [ ] Performans profilleme raporu
 
 ---
 
