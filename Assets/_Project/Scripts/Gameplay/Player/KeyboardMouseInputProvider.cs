@@ -38,6 +38,7 @@ namespace Project.Gameplay.Player
         public bool EquipWeaponPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.Alpha1);
 
         public bool EquipFlashlightPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.Alpha2);
+        public bool EquipAxePressedThisFrame => Input.GetKeyDown(KeyCode.Alpha3);
 
         private void Awake()
         {

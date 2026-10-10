@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 99787d432dfd2ae42b46a265846b9ab2, type: 3}
+  m_Name: Axe_Data
+  m_EditorClassIdentifier: MobilFPS::Project.Data.AxeData
+  itemId: axe_01
+  itemName: Balta
+  icon: {fileID: 21300000, guid: 95ca484e57ba4954e92c785a5415b9f5, type: 3}
+  description: Balta
+  maxStackSize: 1
+  chopDamage: 1
+  axeModelPrefab: {fileID: 1825922082944511666, guid: 268d136398e41fc4f83e3ed0341113e5, type: 3}
+  swingSound: {fileID: 8300000, guid: e3292e30e0a9b50468e5455a487c22fe, type: 3}
+  hitSound: {fileID: 8300000, guid: 6ed25785a8237e14d80731fc14e7c52c, type: 3}
