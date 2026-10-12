@@ -49,10 +49,18 @@ namespace Project.Gameplay.Player
                 _playerHealth?.TakeDamage(starvationDamagePerSecond * Time.deltaTime);
             }
         }
+
         public void Consume(ConsumableData item)
         {
             Hunger = Mathf.Min(MaxValue, Hunger + item.hungerRestore);
             Thirst = Mathf.Min(MaxValue, Thirst + item.thirstRestore);
+
+            if (item.sicknessChance > 0f && Random.value < item.sicknessChance)
+            {
+                _playerHealth?.TakeDamage(item.sicknessDamage);
+                Debug.Log($"[PlayerNeeds] {item.itemName} seni hasta etti! -{item.sicknessDamage} can.");
+            }
+
             Debug.Log($"[PlayerNeeds] {item.itemName} tuketildi - Aclik: {Hunger:F0}/{MaxValue:F0}, Susuzluk: {Thirst:F0}/{MaxValue:F0}");
         }
 
