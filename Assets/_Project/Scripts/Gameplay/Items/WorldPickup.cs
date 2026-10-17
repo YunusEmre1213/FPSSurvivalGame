@@ -26,9 +26,12 @@ namespace Project.Gameplay.Items
 
         private void OnTriggerEnter(Collider other)
         {
+            Debug.Log($"[WorldPickup] OnTriggerEnter: {other.name}, tag: {other.tag}");
+
             if (other.CompareTag("Player"))
             {
                 _playerInRange = true;
+                Debug.Log("[WorldPickup] Player algilandi!");
             }
         }
 

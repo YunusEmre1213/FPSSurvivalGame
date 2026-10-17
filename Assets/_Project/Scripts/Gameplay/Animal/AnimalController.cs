@@ -31,6 +31,12 @@ namespace Project.Gameplay.Animals
         [SerializeField] private int meatDropCount = 2;
         [SerializeField] private float meatDropHeight = 1f;
 
+        [Header("Animasyon")]
+        [SerializeField] private Animator animator;
+        [SerializeField] private string animVerticalParam = "Vert";
+        [SerializeField] private string animStateParam = "State";
+        [SerializeField] private float animBlendSpeed = 6f;
+
         public NavMeshAgent Agent { get; private set; }
         public Transform Player => player;
         public float PatrolRadius => patrolRadius;
@@ -42,11 +48,19 @@ namespace Project.Gameplay.Animals
         private AnimalStateMachine _stateMachine;
         private bool _isDead;
 
+        private float _currentVert;
+        private float _currentState;
+
         private void Awake()
         {
             Agent = GetComponent<NavMeshAgent>();
             SpawnPosition = transform.position;
             _stateMachine = new AnimalStateMachine();
+
+            if (animator == null)
+            {
+                animator = GetComponent<Animator>();
+            }
 
             if (player == null)
             {
@@ -66,6 +80,7 @@ namespace Project.Gameplay.Animals
         private void Update()
         {
             _stateMachine.Update();
+            UpdateAnimator();
         }
 
         public void ChangeState(IAnimalState newState)
@@ -116,11 +131,26 @@ namespace Project.Gameplay.Animals
                 return;
             }
 
-            // Hayvan esik beklemez, ilk darbede kacmaya baslar
+           
             if (!(_stateMachine.CurrentState is AnimalFleeState))
             {
                 ChangeState(new AnimalFleeState(this));
             }
+        }
+
+        private void UpdateAnimator()
+        {
+            if (animator == null) return;
+
+            float maxSpeed = Mathf.Max(Agent.speed, 0.01f);
+            float targetVert = Mathf.Clamp01(Agent.velocity.magnitude / maxSpeed);
+            float targetState = (_stateMachine.CurrentState is AnimalFleeState) ? 1f : 0f;
+
+            _currentVert = Mathf.Lerp(_currentVert, targetVert, Time.deltaTime * animBlendSpeed);
+            _currentState = Mathf.Lerp(_currentState, targetState, Time.deltaTime * animBlendSpeed);
+
+            animator.SetFloat(animVerticalParam, _currentVert);
+            animator.SetFloat(animStateParam, _currentState);
         }
 
         private void Die()

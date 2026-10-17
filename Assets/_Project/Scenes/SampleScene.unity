@@ -4491,7 +4491,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7922649801668778604, guid: 4ecab060b0afb5d4db61f7f1311b9e24, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7922649801668778606, guid: 4ecab060b0afb5d4db61f7f1311b9e24, type: 3}
       propertyPath: m_LocalPosition.x
@@ -4535,7 +4535,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7922649801668778611, guid: 4ecab060b0afb5d4db61f7f1311b9e24, type: 3}
       propertyPath: m_Enabled
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -10323,6 +10323,10 @@ MonoBehaviour:
   rawMeatPickupPrefab: {fileID: 3734168780703403120, guid: 5c0993e5630661348be885901503e287, type: 3}
   meatDropCount: 2
   meatDropHeight: 1
+  animator: {fileID: 0}
+  animVerticalParam: Vert
+  animStateParam: State
+  animBlendSpeed: 6
 --- !u!195 &525060034
 NavMeshAgent:
   m_ObjectHideFlags: 0
