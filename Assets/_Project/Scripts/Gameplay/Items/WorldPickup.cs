@@ -4,6 +4,7 @@ using Project.Data;
 using Project.Systems;
 using Project.Gameplay.Interaction;
 using Project.Gameplay.Player;
+using Project.UI;
 
 namespace Project.Gameplay.Items
 {
@@ -16,7 +17,7 @@ namespace Project.Gameplay.Items
         private IInputProvider _input;
         private bool _playerInRange;
 
-        public string InteractionPrompt => $"{item.itemName} topla";
+        public string InteractionPrompt => $"{item.itemName} {amount}x (E TOPLA)";
 
         private void Start()
         {
@@ -36,11 +37,17 @@ namespace Project.Gameplay.Items
             if (other.CompareTag("Player"))
             {
                 _playerInRange = false;
+                InteractionPromptUI.Instance?.Hide(gameObject);
             }
         }
 
         private void Update()
         {
+            if (_playerInRange)
+            {
+                InteractionPromptUI.Instance?.Show(gameObject, InteractionPrompt);
+            }
+
             if (!_playerInRange || _input == null) return;
 
             if (_input.PickupPressedThisFrame)
@@ -63,12 +70,12 @@ namespace Project.Gameplay.Items
 
             if (leftover <= 0)
             {
+                InteractionPromptUI.Instance?.Hide(gameObject);
                 Destroy(gameObject);
             }
             else
             {
                 amount = leftover;
-                Debug.Log("[WorldPickup] Envanter dolu - kalan miktar objede kaldi, tekrar etkilesime gec.");
             }
         }
     }

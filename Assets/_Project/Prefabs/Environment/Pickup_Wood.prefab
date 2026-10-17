@@ -131,6 +131,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Project.Gameplay.Items.WorldPickup
   item: {fileID: 11400000, guid: b39e11cf7987a764dab72c07fcb0416a, type: 2}
   amount: 3
+  promptPrefab: {fileID: 2530959251692733504, guid: 5fcde5cf296e8944482ea7ccfa398940, type: 3}
+  promptAnchor: {fileID: 0}
+  promptHeight: 0.5
 --- !u!136 &822723586089351126
 CapsuleCollider:
   m_ObjectHideFlags: 0

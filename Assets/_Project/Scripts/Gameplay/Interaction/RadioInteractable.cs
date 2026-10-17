@@ -1,6 +1,7 @@
 using UnityEngine;
 using Project.Gameplay.Interaction;
 using Project.Gameplay.Player;
+using Project.UI;
 
 namespace Project.Gameplay.Items
 {
@@ -13,9 +14,7 @@ namespace Project.Gameplay.Items
         [SerializeField] private AudioClip musicClip;
 
         [Header("Anten Animasyonu")]
-        [Tooltip("Anten acikken kac derece donsun (yerel Z ekseni).")]
         [SerializeField] private float antennaOpenAngle = 90f;
-        [Tooltip("Anten saniyede kac derece donsun - dusuk deger = yavas/yumusak acilis.")]
         [SerializeField] private float antennaRotateSpeed = 60f;
 
         private bool _isOn;
@@ -44,12 +43,21 @@ namespace Project.Gameplay.Items
 
         private void OnTriggerExit(Collider other)
         {
-            if (other.CompareTag("Player")) _playerInRange = false;
+            if (other.CompareTag("Player"))
+            {
+                _playerInRange = false;
+                InteractionPromptUI.Instance?.Hide(gameObject);
+            }
         }
 
         private void Update()
         {
             UpdateAntenna();
+
+            if (_playerInRange)
+            {
+                InteractionPromptUI.Instance?.Show(gameObject, InteractionPrompt);
+            }
 
             if (!_playerInRange || _input == null) return;
 
@@ -72,20 +80,13 @@ namespace Project.Gameplay.Items
             _isOn = !_isOn;
             _targetAngle = _isOn ? antennaOpenAngle : 0f;
 
-            if (_isOn)
-            {
-                PlayMusic();
-            }
-            else
-            {
-                StopMusic();
-            }
+            if (_isOn) PlayMusic();
+            else StopMusic();
         }
 
         private void PlayMusic()
         {
             if (audioSource == null || musicClip == null) return;
-
             audioSource.clip = musicClip;
             audioSource.loop = true;
             audioSource.Play();

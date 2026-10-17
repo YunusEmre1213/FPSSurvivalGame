@@ -5,6 +5,7 @@ using Project.Data;
 using Project.Systems;
 using Project.Gameplay.Interaction;
 using Project.Gameplay.Player;
+using Project.UI;
 
 namespace Project.Gameplay.Items
 {
@@ -13,21 +14,17 @@ namespace Project.Gameplay.Items
     {
         [Header("Yakit")]
         [SerializeField] private ResourceData woodItem;
-        [Tooltip("Bir odunun ekledigi yakit suresi (saniye).")]
         [SerializeField] private float fuelPerWood = 60f;
-        [Tooltip("Yakitin birikebilecegi ust sinir (saniye) - sonsuza kadar odun yigmayi onler.")]
         [SerializeField] private float maxFuel = 300f;
 
         [Header("Pisirme")]
         [SerializeField] private ConsumableData rawMeatItem;
         [SerializeField] private ConsumableData cookedMeatItem;
-        [Tooltip("Bir etin pismesi icin gereken sure (saniye).")]
         [SerializeField] private float cookDuration = 8f;
 
-        [Header("Gorsel referanslar (yanikken acik, sonukken kapali)")]
+        [Header("Gorsel referanslar")]
         [SerializeField] private GameObject fireVisual;
         [SerializeField] private GameObject fireLight;
-        [Tooltip("Opsiyonel - varsa duman efekti de ayni sekilde ac/kapa.")]
         [SerializeField] private GameObject smokeVisual;
 
         private IInputProvider _input;
@@ -60,7 +57,11 @@ namespace Project.Gameplay.Items
 
         private void OnTriggerExit(Collider other)
         {
-            if (other.CompareTag("Player")) _playerInRange = false;
+            if (other.CompareTag("Player"))
+            {
+                _playerInRange = false;
+                InteractionPromptUI.Instance?.Hide(gameObject);
+            }
         }
 
         private void Update()
@@ -74,6 +75,11 @@ namespace Project.Gameplay.Items
                     ApplyVisualState();
                     Debug.Log("[CampfireInteractable] Ates sondu - yakit bitti.");
                 }
+            }
+
+            if (_playerInRange)
+            {
+                InteractionPromptUI.Instance?.Show(gameObject, InteractionPrompt);
             }
 
             if (!_playerInRange || _input == null) return;
@@ -103,7 +109,6 @@ namespace Project.Gameplay.Items
                 return;
             }
 
-            // Pisirilecek et yoksa, ateþ yanýyorken de yine odun atilabilsin (yakiti besle)
             TryAddWood();
         }
 
@@ -152,7 +157,6 @@ namespace Project.Gameplay.Items
             {
                 if (!IsLit)
                 {
-                    // Ates sonerse pisirme yarida kalir, et bosa gitmesin diye cig olarak iade edilir
                     var inv = ServiceLocator.Instance.Get<IItemInventoryService>();
                     inv.AddItem(rawMeatItem, 1);
                     _isCooking = false;
