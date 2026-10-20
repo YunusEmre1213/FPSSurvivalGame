@@ -35,6 +35,8 @@ namespace Project.Gameplay.Player
         [SerializeField] private AudioClip landSound;
         [SerializeField] private float walkStepInterval = 0.5f;
         [SerializeField] private float sprintStepInterval = 0.32f;
+        [Tooltip("Egimli/engebeli zeminde isGrounded'in tek frame'lik yanlis algilamalarini (flicker) filtrelemek icin: bu sureden daha az havada kalindiysa inis sesi calinmaz.")]
+        [SerializeField] private float minAirborneTimeForLandSound = 0.15f;
 
         private IInputProvider _input;
         private CharacterController _characterController;
@@ -45,12 +47,13 @@ namespace Project.Gameplay.Player
         private bool _isSprinting;
         private bool _wasGrounded = true;
         private float _footstepTimer;
+        private float _airborneTimer;
 
-       
+
         private Vector3 _currentMoveVelocity;
         private Vector3 _moveVelocitySmoothRef;
 
-      
+
         private Vector2 _smoothedLookDelta;
         private Vector2 _lookDeltaSmoothRef;
 
@@ -116,9 +119,17 @@ namespace Project.Gameplay.Player
 
             bool isGrounded = _characterController.isGrounded;
 
-            if (isGrounded && !_wasGrounded)
+            if (!isGrounded)
             {
-                PlayLandSound();
+                _airborneTimer += Time.deltaTime;
+            }
+            else
+            {
+                if (!_wasGrounded && _airborneTimer >= minAirborneTimeForLandSound)
+                {
+                    PlayLandSound();
+                }
+                _airborneTimer = 0f;
             }
             _wasGrounded = isGrounded;
 
@@ -165,6 +176,8 @@ namespace Project.Gameplay.Player
 
         private void PlayFootstep()
         {
+            if (WaterAudioZone.IsPlayerInWater) return;
+
             if (footstepAudioSource == null || footstepClips == null || footstepClips.Length == 0) return;
 
             var clip = footstepClips[Random.Range(0, footstepClips.Length)];
