@@ -40,6 +40,8 @@ namespace Project.Gameplay.Player
         public bool EquipFlashlightPressedThisFrame => !UIInputLock.IsLocked && Input.GetKeyDown(KeyCode.Alpha2);
         public bool EquipAxePressedThisFrame => Input.GetKeyDown(KeyCode.Alpha3);
 
+        public bool EquipBucketPressedThisFrame => Input.GetKeyDown(KeyCode.Alpha4);
+
         private void Awake()
         {
             ActiveInput.SetProvider(this);

@@ -19,5 +19,6 @@ namespace Project.Gameplay.Player
         bool EquipWeaponPressedThisFrame { get; }
         bool EquipFlashlightPressedThisFrame { get; }
         bool EquipAxePressedThisFrame { get; }
+        bool EquipBucketPressedThisFrame { get; }
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Project.Gameplay.Tools;
 
 namespace Project.Gameplay.Player
 {
@@ -21,6 +22,10 @@ namespace Project.Gameplay.Player
         [Header("Ziplama (Space)")]
         [SerializeField] private float jumpHeight = 1.2f;
 
+        [Header("Kova Tasima")]
+        [Tooltip("Dolu bir kova equip edilmisken hareket hizina uygulanan carpan (1 = etkisiz, 0.6 = %40 yavas).")]
+        [SerializeField] private float fullBucketSpeedMultiplier = 0.6f;
+
         [Header("Nisan")]
         [SerializeField] private float lookSpeed = 3f;
         [Tooltip("Dokunmatik girdideki titremeyi azaltir. 0 = hic yumusatma (en hizli tepki, en titrek). Yuksek deger = daha yumusak ama gecikmeli.")]
@@ -35,7 +40,6 @@ namespace Project.Gameplay.Player
         [SerializeField] private AudioClip landSound;
         [SerializeField] private float walkStepInterval = 0.5f;
         [SerializeField] private float sprintStepInterval = 0.32f;
-        [Tooltip("Egimli/engebeli zeminde isGrounded'in tek frame'lik yanlis algilamalarini (flicker) filtrelemek icin: bu sureden daha az havada kalindiysa inis sesi calinmaz.")]
         [SerializeField] private float minAirborneTimeForLandSound = 0.15f;
 
         private IInputProvider _input;
@@ -49,10 +53,8 @@ namespace Project.Gameplay.Player
         private float _footstepTimer;
         private float _airborneTimer;
 
-
         private Vector3 _currentMoveVelocity;
         private Vector3 _moveVelocitySmoothRef;
-
 
         private Vector2 _smoothedLookDelta;
         private Vector2 _lookDeltaSmoothRef;
@@ -114,6 +116,11 @@ namespace Project.Gameplay.Player
                 _stamina.Regenerate(Time.deltaTime);
             }
 
+            if (BucketController.IsCarryingFullBucket)
+            {
+                currentSpeed *= fullBucketSpeedMultiplier;
+            }
+
             var targetVelocity = targetDirection * currentSpeed;
             _currentMoveVelocity = Vector3.SmoothDamp(_currentMoveVelocity, targetVelocity, ref _moveVelocitySmoothRef, moveSmoothTime);
 
@@ -123,14 +130,17 @@ namespace Project.Gameplay.Player
             {
                 _airborneTimer += Time.deltaTime;
             }
-            else
+
+            if (isGrounded && !_wasGrounded && _airborneTimer >= minAirborneTimeForLandSound)
             {
-                if (!_wasGrounded && _airborneTimer >= minAirborneTimeForLandSound)
-                {
-                    PlayLandSound();
-                }
+                PlayLandSound();
+            }
+
+            if (isGrounded)
+            {
                 _airborneTimer = 0f;
             }
+
             _wasGrounded = isGrounded;
 
             if (isGrounded)
@@ -177,7 +187,6 @@ namespace Project.Gameplay.Player
         private void PlayFootstep()
         {
             if (WaterAudioZone.IsPlayerInWater) return;
-
             if (footstepAudioSource == null || footstepClips == null || footstepClips.Length == 0) return;
 
             var clip = footstepClips[Random.Range(0, footstepClips.Length)];

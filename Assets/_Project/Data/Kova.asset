@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 654151cc5ac806e4fbcee94ef9521ac5, type: 3}
+  m_Name: Kova
+  m_EditorClassIdentifier: MobilFPS::Project.Data.BucketData
+  itemId: kova
+  itemName: Kova
+  icon: {fileID: 21300000, guid: ee6ca85e3ae2acb46b9faa5ff3c44480, type: 3}
+  description: "Sudan doldurup ate\u015Fte kaynatarak temiz su elde etmek i\xE7in
+    kullan\u0131l\u0131r"
+  maxStackSize: 1
+  bucketModelPrefab: {fileID: 2522204790440090214, guid: d7c5889364589de4aa9a962fe430e700, type: 3}
+  fillSound: {fileID: 8300000, guid: 93d221437a66d8a45bd7f63874a39b9b, type: 3}
+  emptySound: {fileID: 0}

@@ -22,25 +22,52 @@ namespace Project.Gameplay.Items
         [SerializeField] private ConsumableData cookedMeatItem;
         [SerializeField] private float cookDuration = 8f;
 
+        [Header("Su Kaynatma (Kova)")]
+        [SerializeField] private ConsumableData cleanWaterItem;
+        [SerializeField] private int bottlesPerBucket = 3;
+        [SerializeField] private float boilDuration = 10f;
+        [SerializeField] private Transform potSocket;
+        [SerializeField] private GameObject boilingBucketVisualPrefab;
+
         [Header("Gorsel referanslar")]
         [SerializeField] private GameObject fireVisual;
         [SerializeField] private GameObject fireLight;
         [SerializeField] private GameObject smokeVisual;
 
+        [Header("UI")]
+        [SerializeField] private CampfirePanelUI campfirePanelUI;
+
         private IInputProvider _input;
         private bool _playerInRange;
         private float _fuelRemaining;
         private bool _isCooking;
+        private bool _isBoiling;
+        private EquipmentController _playerEquipment;
+        private GameObject _boilingBucketVisualInstance;
 
         public bool IsLit => _fuelRemaining > 0f;
+        public bool IsBusy => _isCooking || _isBoiling;
 
         public string InteractionPrompt
         {
             get
             {
                 if (!IsLit) return $"{woodItem.itemName} at (yakiti besle)";
+                return "Atesi kullan (F)";
+            }
+        }
+
+        public string RawMeatLabel => rawMeatItem != null ? $"{rawMeatItem.itemName} Pisir" : "Et Pisir";
+        public string BoilLabel => "Su Kaynat";
+        public string WoodLabel => woodItem != null ? $"{woodItem.itemName} Ekle" : "Odun Ekle";
+
+        public string StatusLabel
+        {
+            get
+            {
                 if (_isCooking) return "Et pisiyor...";
-                return $"{rawMeatItem.itemName} pisir";
+                if (_isBoiling) return "Su kayniyor...";
+                return null;
             }
         }
 
@@ -52,7 +79,15 @@ namespace Project.Gameplay.Items
 
         private void OnTriggerEnter(Collider other)
         {
-            if (other.CompareTag("Player")) _playerInRange = true;
+            if (other.CompareTag("Player"))
+            {
+                _playerInRange = true;
+                _playerEquipment = other.GetComponent<EquipmentController>();
+                if (_playerEquipment == null)
+                {
+                    _playerEquipment = other.GetComponentInParent<EquipmentController>();
+                }
+            }
         }
 
         private void OnTriggerExit(Collider other)
@@ -60,7 +95,9 @@ namespace Project.Gameplay.Items
             if (other.CompareTag("Player"))
             {
                 _playerInRange = false;
+                _playerEquipment = null;
                 InteractionPromptUI.Instance?.Hide(gameObject);
+                campfirePanelUI?.CloseIfOwner(this);
             }
         }
 
@@ -98,17 +135,43 @@ namespace Project.Gameplay.Items
                 return;
             }
 
-            if (_isCooking)
+            if (campfirePanelUI != null)
             {
-                Debug.Log("[CampfireInteractable] Et zaten pisiyor, bekle.");
-                return;
+                campfirePanelUI.Open(this);
             }
-
-            if (TryStartCooking())
+            else
             {
-                return;
+                Debug.LogWarning("[CampfireInteractable] campfirePanelUI atanmamis - panel acilamiyor.");
             }
+        }
 
+        public bool HasRawMeat()
+        {
+            return ServiceLocator.Instance.Get<IItemInventoryService>().GetItemCount(rawMeatItem) > 0;
+        }
+
+        public bool HasWood()
+        {
+            return ServiceLocator.Instance.Get<IItemInventoryService>().GetItemCount(woodItem) > 0;
+        }
+
+        public bool HasFullBucketReady()
+        {
+            return _playerEquipment != null && _playerEquipment.HasFullBucketEquipped();
+        }
+
+        public void StartCookingFromPanel()
+        {
+            TryStartCooking();
+        }
+
+        public void StartBoilingFromPanel()
+        {
+            TryStartBoilingWithBucket();
+        }
+
+        public void AddWoodFromPanel()
+        {
             TryAddWood();
         }
 
@@ -139,6 +202,8 @@ namespace Project.Gameplay.Items
 
         private bool TryStartCooking()
         {
+            if (_isCooking || _isBoiling) return false;
+
             var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
             if (inventory.GetItemCount(rawMeatItem) <= 0) return false;
 
@@ -173,6 +238,70 @@ namespace Project.Gameplay.Items
 
             _isCooking = false;
             Debug.Log("[CampfireInteractable] Et pisti! Envantere eklendi.");
+        }
+
+        private bool TryStartBoilingWithBucket()
+        {
+            if (_isCooking || _isBoiling) return false;
+            if (_playerEquipment == null || !_playerEquipment.HasFullBucketEquipped()) return false;
+
+            var boilingPlayer = _playerEquipment;
+            boilingPlayer.HideEquippedBucketForBoiling();
+            SpawnBoilingBucketVisual();
+
+            StartCoroutine(BoilBucket(boilingPlayer));
+            return true;
+        }
+
+        private IEnumerator BoilBucket(EquipmentController boilingPlayer)
+        {
+            _isBoiling = true;
+            Debug.Log("[CampfireInteractable] Kova atese kondu, su kaynatiliyor.");
+
+            float elapsed = 0f;
+            while (elapsed < boilDuration)
+            {
+                if (!IsLit)
+                {
+                    DespawnBoilingBucketVisual();
+                    boilingPlayer.ShowEquippedBucketAfterBoiling();
+                    _isBoiling = false;
+                    Debug.Log("[CampfireInteractable] Ates sondu, kaynatma yarida kaldi - kova dolu haliyle geri verildi.");
+                    yield break;
+                }
+
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            DespawnBoilingBucketVisual();
+            boilingPlayer.EmptyEquippedBucket();
+            boilingPlayer.ShowEquippedBucketAfterBoiling();
+
+            var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
+            inventory.AddItem(cleanWaterItem, bottlesPerBucket);
+
+            _isBoiling = false;
+            Debug.Log($"[CampfireInteractable] Su kaynadi! Envantere {bottlesPerBucket}x {cleanWaterItem.itemName} eklendi.");
+        }
+
+        private void SpawnBoilingBucketVisual()
+        {
+            if (boilingBucketVisualPrefab == null || potSocket == null) return;
+            if (_boilingBucketVisualInstance != null) Destroy(_boilingBucketVisualInstance);
+
+            _boilingBucketVisualInstance = Instantiate(boilingBucketVisualPrefab, potSocket);
+            _boilingBucketVisualInstance.transform.localPosition = Vector3.zero;
+            _boilingBucketVisualInstance.transform.localRotation = Quaternion.identity;
+        }
+
+        private void DespawnBoilingBucketVisual()
+        {
+            if (_boilingBucketVisualInstance != null)
+            {
+                Destroy(_boilingBucketVisualInstance);
+                _boilingBucketVisualInstance = null;
+            }
         }
 
         private void ApplyVisualState()
