@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.AI;
 using Project.Core;
@@ -51,6 +52,10 @@ namespace Project.Gameplay.Enemies
         [Tooltip("Kacarken normal hizin kac kati - panik hizlanmasi.")]
         [SerializeField] private float fleeSpeedMultiplier = 1.4f;
 
+        [Header("Olum")]
+        [Tooltip("Oldukten sonra yerde ne kadar sure bekleyip (loot toplama, ceset gorme sansi icin) kaybolacagi (saniye).")]
+        [SerializeField] private float corpseLingerDuration = 4f;
+
         public NavMeshAgent Agent { get; private set; }
         public Transform Player => player;
         public float DetectionRange => detectionRange;
@@ -68,9 +73,12 @@ namespace Project.Gameplay.Enemies
         public Vector3 SpawnPosition { get; private set; }
 
         private EnemyStateMachine _stateMachine;
+        private EnemyAudioController _audioController;
+        private Collider _collider;
         private float _maxHealth;
         private float _baseHealth;
         private float _baseDamage;
+        private bool _isDead;
 
         private void OnEnable()
         {
@@ -86,7 +94,7 @@ namespace Project.Gameplay.Enemies
 
         private void OnEnemyAlert(EnemyAlertEvent evt)
         {
-            if (evt.Source == gameObject) return; 
+            if (evt.Source == gameObject) return;
 
             if (_stateMachine.CurrentState is EnemyChaseState
                 || _stateMachine.CurrentState is EnemyAttackState
@@ -121,11 +129,14 @@ namespace Project.Gameplay.Enemies
         private void Awake()
         {
             Agent = GetComponent<NavMeshAgent>();
+            _audioController = GetComponent<EnemyAudioController>();
+            _collider = GetComponent<Collider>();
             SpawnPosition = transform.position;
             _stateMachine = new EnemyStateMachine();
             _maxHealth = health;
             _baseHealth = health;
             _baseDamage = damage;
+            _isDead = false;
 
             if (player == null)
             {
@@ -152,14 +163,23 @@ namespace Project.Gameplay.Enemies
             transform.SetPositionAndRotation(spawnPosition, spawnRotation);
             SpawnPosition = spawnPosition;
             health = _maxHealth;
+            _isDead = false;
+
+            if (_collider != null)
+            {
+                _collider.enabled = true;
+            }
 
             if (Agent != null)
             {
+                Agent.enabled = true;
                 Agent.Warp(spawnPosition);
+                Agent.isStopped = false;
             }
 
             _stateMachine.ChangeState(new EnemyPatrolState(this));
         }
+
         public void ApplyDifficultyScale(float multiplier)
         {
             health = _baseHealth * multiplier;
@@ -169,6 +189,7 @@ namespace Project.Gameplay.Enemies
 
         private void Update()
         {
+            if (_isDead) return;
             _stateMachine.Update();
         }
 
@@ -176,6 +197,7 @@ namespace Project.Gameplay.Enemies
         {
             return player == null ? Mathf.Infinity : Vector3.Distance(transform.position, player.position);
         }
+
         public bool CanSeePlayer()
         {
             if (player == null) return false;
@@ -195,7 +217,7 @@ namespace Project.Gameplay.Enemies
             {
                 if (!hit.collider.CompareTag("Player"))
                 {
-                    return false; 
+                    return false;
                 }
             }
 
@@ -207,15 +229,21 @@ namespace Project.Gameplay.Enemies
             _stateMachine.ChangeState(newState);
         }
 
+        public event System.Action OnAttackTriggered;
+
         public void DealDamageToPlayer()
         {
+            OnAttackTriggered?.Invoke();
             var damageable = player != null ? player.GetComponent<IDamageable>() : null;
+
             damageable?.TakeDamage(damage);
             Debug.Log($"[EnemyController] {gameObject.name} oyuncuya {damage} hasar verdi.");
         }
 
         public void TakeDamage(float amount)
         {
+            if (_isDead) return;
+
             health -= amount;
             Debug.Log($"[EnemyController] {gameObject.name} {amount} hasar aldi, kalan can: {health}");
 
@@ -233,8 +261,37 @@ namespace Project.Gameplay.Enemies
 
         private void Die()
         {
+            if (_isDead) return;
+            _isDead = true;
+
             Debug.Log($"[EnemyController] {gameObject.name} oldu.");
             EventBus.Publish(new EnemyDiedEvent(transform.position));
+
+            _audioController?.PlayDeathSound();
+
+            if (Agent != null)
+            {
+                Agent.isStopped = true;
+                Agent.enabled = false;
+            }
+
+            if (_collider != null)
+            {
+                _collider.enabled = false;
+            }
+
+            var animator = GetComponent<Animator>();
+            if (animator != null)
+            {
+                animator.SetTrigger("Death");
+            }
+
+            StartCoroutine(DeathSequence());
+        }
+
+        private IEnumerator DeathSequence()
+        {
+            yield return new WaitForSeconds(corpseLingerDuration);
             Destroy(gameObject);
         }
     }

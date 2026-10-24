@@ -15244,6 +15244,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4689083990643298, guid: 1aaf3ef80841d9c4990a27fee328eb1c, type: 3}
   m_PrefabInstance: {fileID: 152394844}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &153247076
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 153247077}
+  m_Layer: 0
+  m_Name: WolfSpawn_01
+  m_TagString: Untagged
+  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &153247077
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 153247076}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -54.25, y: 2.873, z: 89.59}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &153849912
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -51592,9 +51623,15 @@ MonoBehaviour:
   - {fileID: 849238978}
   - {fileID: 414577074}
   - {fileID: 588282958}
+  wolfSpawnPoints:
+  - {fileID: 153247077}
+  - {fileID: 1213338294}
+  - {fileID: 1736480866}
+  wolfSpawnScatterRadius: 10
   oncuPrefab: {fileID: 222958743904406241, guid: e1ac1be7360a57f49b8313e0243f49af, type: 3}
   suruPrefab: {fileID: 8763228268947982521, guid: 9abbbcae4269e1f4b8f3519894069245, type: 3}
   elitePrefab: {fileID: 4786594571073093195, guid: cbae112ed2854b840befdb61725a6636, type: 3}
+  wolfPrefab: {fileID: 175852, guid: 46bae10b4062627449ea93d9801e8dfb, type: 3}
   oncuDayCount: 1
   oncuDuskCount: 2
   oncuNightCount: 1
@@ -51603,8 +51640,16 @@ MonoBehaviour:
   suruNightCount: 4
   eliteNightSpawnChance: 0.3
   eliteCountWhenSpawned: 1
+  wolfDayMinCount: 1
+  wolfDayMaxCount: 2
+  wolfDuskMinCount: 1
+  wolfDuskMaxCount: 3
+  wolfNightCount: 6
   difficultyScalePerNight: 0.12
   usePooling: 0
+  enableTestSpawn: 1
+  testSpawnKey: 290
+  testSpawnDistanceFromPlayer: 5
 --- !u!4 &472752126
 Transform:
   m_ObjectHideFlags: 0
@@ -64795,6 +64840,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4689083990643298, guid: 1aaf3ef80841d9c4990a27fee328eb1c, type: 3}
   m_PrefabInstance: {fileID: 598923505}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &599229559
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 599229560}
+  m_Layer: 0
+  m_Name: WolfSpawn_04
+  m_TagString: Untagged
+  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &599229560
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 599229559}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -10.7, y: 4.41, z: 134.42}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &599948893
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -133754,6 +133830,37 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 4689083990643298, guid: 1aaf3ef80841d9c4990a27fee328eb1c, type: 3}
   m_PrefabInstance: {fileID: 1213195719}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1213338293
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1213338294}
+  m_Layer: 0
+  m_Name: WolfSpawn_02
+  m_TagString: Untagged
+  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1213338294
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1213338293}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -112.1, y: 4.29, z: 89.59}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1213822676
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -187655,6 +187762,37 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 11ef6c955fb624a4aaf3b18597db22df, type: 3}
+--- !u!1 &1736480865
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1736480866}
+  m_Layer: 0
+  m_Name: WolfSpawn_03
+  m_TagString: Untagged
+  m_Icon: {fileID: 3443629218296621865, guid: 0000000000000000d000000000000000, type: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1736480866
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1736480865}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -112.1, y: 2.06, z: 114.99}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1736517861
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -231544,3 +231682,7 @@ SceneRoots:
   - {fileID: 422958613}
   - {fileID: 1916991170}
   - {fileID: 1983292791}
+  - {fileID: 153247077}
+  - {fileID: 1213338294}
+  - {fileID: 1736480866}
+  - {fileID: 599229560}
