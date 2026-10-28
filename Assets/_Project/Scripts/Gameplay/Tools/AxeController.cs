@@ -13,6 +13,12 @@ namespace Project.Gameplay.Tools
         [SerializeField] private AxeData axeData;
         [SerializeField] private AudioSource audioSource;
 
+        [Header("Elde Durus (Rest Pose)")]
+        [Tooltip("Balta elde dururken (sallamadan once/sonra) socket'e gore yerel pozisyon offseti.")]
+        [SerializeField] private Vector3 restPositionOffset;
+        [Tooltip("Balta elde dururken socket'e gore yerel rotasyon offseti (derece).")]
+        [SerializeField] private Vector3 restRotationOffset;
+
         [Header("Vurus Ayarlari")]
         [SerializeField] private float swingRange = 3f;
         [SerializeField] private float swingCooldown = 0.6f;
@@ -79,8 +85,8 @@ namespace Project.Gameplay.Tools
             if (axeData == null || axeData.axeModelPrefab == null || axeSocket == null) return;
 
             _axeModelInstance = Instantiate(axeData.axeModelPrefab, axeSocket);
-            _axeModelInstance.transform.localPosition = Vector3.zero;
-            _axeModelInstance.transform.localRotation = Quaternion.identity;
+            _axeModelInstance.transform.localPosition = restPositionOffset;
+            _axeModelInstance.transform.localRotation = Quaternion.Euler(restRotationOffset);
 
             _basePosition = _axeModelInstance.transform.localPosition;
             _baseRotation = _axeModelInstance.transform.localRotation;

@@ -11,6 +11,12 @@ namespace Project.Gameplay.Tools
         [SerializeField] private BucketData bucketData;
         [SerializeField] private AudioSource audioSource;
 
+        [Header("Elde Durus (Rest Pose)")]
+        [Tooltip("Kova elde dururken socket'e gore yerel pozisyon offseti.")]
+        [SerializeField] private Vector3 restPositionOffset;
+        [Tooltip("Kova elde dururken socket'e gore yerel rotasyon offseti (derece).")]
+        [SerializeField] private Vector3 restRotationOffset;
+
         [Header("Dolu Gorseli")]
         [SerializeField] private string waterFillChildName = "WaterFill";
 
@@ -119,8 +125,8 @@ namespace Project.Gameplay.Tools
             if (bucketData == null || bucketData.bucketModelPrefab == null || bucketSocket == null) return;
 
             _bucketModelInstance = Instantiate(bucketData.bucketModelPrefab, bucketSocket);
-            _bucketModelInstance.transform.localPosition = Vector3.zero;
-            _bucketModelInstance.transform.localRotation = Quaternion.identity;
+            _bucketModelInstance.transform.localPosition = restPositionOffset;
+            _bucketModelInstance.transform.localRotation = Quaternion.Euler(restRotationOffset);
 
             _basePosition = _bucketModelInstance.transform.localPosition;
             _baseRotation = _bucketModelInstance.transform.localRotation;

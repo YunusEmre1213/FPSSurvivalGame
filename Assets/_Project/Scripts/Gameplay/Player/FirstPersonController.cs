@@ -42,6 +42,16 @@ namespace Project.Gameplay.Player
         [SerializeField] private float sprintStepInterval = 0.32f;
         [SerializeField] private float minAirborneTimeForLandSound = 0.15f;
 
+        [Header("Animasyon")]
+        [Tooltip("Govdeyi gosteren karakter modelinin (Survivalist child objesi) Animator component'i.")]
+        [SerializeField] private Animator animator;
+
+        [Tooltip("Birinci sahis goruntusunde gizlenecek kafa kemigi - kendi kafanin icine girmeyi engeller. Sadece bu (local/sahip) oyuncunun kendi karakterinde calisir.")]
+        [SerializeField] private Transform headBone;
+
+        private static readonly int SpeedParam = Animator.StringToHash("Speed");
+        private static readonly int JumpTrigger = Animator.StringToHash("Jump");
+
         private IInputProvider _input;
         private CharacterController _characterController;
         private PlayerStamina _stamina;
@@ -63,6 +73,11 @@ namespace Project.Gameplay.Player
         {
             _characterController = GetComponent<CharacterController>();
             _stamina = GetComponent<PlayerStamina>();
+
+            if (headBone != null)
+            {
+                headBone.localScale = Vector3.zero;
+            }
         }
 
         private void Start()
@@ -154,6 +169,7 @@ namespace Project.Gameplay.Player
                 {
                     _verticalVelocity = Mathf.Sqrt(jumpHeight * -2f * gravity);
                     PlayJumpSound();
+                    TriggerJumpAnimation();
                 }
             }
             _verticalVelocity += gravity * Time.deltaTime;
@@ -164,6 +180,21 @@ namespace Project.Gameplay.Player
             _characterController.Move(finalVelocity * Time.deltaTime);
 
             HandleFootsteps(isMoving);
+            UpdateAnimator();
+        }
+
+        private void UpdateAnimator()
+        {
+            if (animator == null) return;
+
+            float horizontalSpeed = _currentMoveVelocity.magnitude;
+            animator.SetFloat(SpeedParam, horizontalSpeed);
+        }
+
+        private void TriggerJumpAnimation()
+        {
+            if (animator == null) return;
+            animator.SetTrigger(JumpTrigger);
         }
 
         private void HandleFootsteps(bool isMoving)
