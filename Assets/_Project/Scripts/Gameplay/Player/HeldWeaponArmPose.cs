@@ -6,45 +6,71 @@ namespace Project.Gameplay.Player
     {
         [Header("Karakter Animator'i ve Kamera")]
         [SerializeField] private Animator characterAnimator;
-        [Tooltip("Pozun gore hesaplanacagi kamera - bos birakirsan Camera.main kullanilir.")]
         [SerializeField] private Transform cameraTransform;
 
-        [Header("Tabanca tutus pozu - kameraya GORE acilar (WeaponHoldPoseEditorWindow ile doldurulur)")]
+        [Header("Sag kol - kameraya GORE acilar (ates pozu)")]
         [SerializeField] private Vector3 rightUpperArmRelativeEuler;
         [SerializeField] private Vector3 rightLowerArmRelativeEuler;
         [SerializeField] private Vector3 rightHandRelativeEuler;
-        [SerializeField] private Vector3 leftUpperArmRelativeEuler;
-        [SerializeField] private Vector3 leftLowerArmRelativeEuler;
-        [SerializeField] private Vector3 leftHandRelativeEuler;
+
+        [Header("Bas Parmak - ele GORE (local) acilar")]
+        [SerializeField] private Vector3 thumbEuler;
+        [SerializeField] private Vector3 thumbMidEuler;
+        [SerializeField] private Vector3 thumbTipEuler;
+
+        [Header("Isaret Parmagi - ele GORE (local) acilar")]
+        [SerializeField] private Vector3 indexEuler;
+        [SerializeField] private Vector3 indexMidEuler;
+        [SerializeField] private Vector3 indexTipEuler;
+
+        [Header("Isaret Parmagi - POZISYON sabitleme (animasyon bozuyorsa)")]
+        [SerializeField] private bool fixIndexPosition;
+        [SerializeField] private Vector3 indexLocalPosition;
+        [SerializeField] private Vector3 indexMidLocalPosition;
+        [SerializeField] private Vector3 indexTipLocalPosition;
+
+        [Header("Orta Parmak - ele GORE (local) acilar")]
+        [SerializeField] private Vector3 middleEuler;
+        [SerializeField] private Vector3 middleMidEuler;
+        [SerializeField] private Vector3 middleTipEuler;
+
+        [Header("Yuzuk Parmagi - ele GORE (local) acilar")]
+        [SerializeField] private Vector3 ringEuler;
+        [SerializeField] private Vector3 ringMidEuler;
+        [SerializeField] private Vector3 ringTipEuler;
+
+        [Header("Serce Parmak - ele GORE (local) acilar")]
+        [SerializeField] private Vector3 pinkyEuler;
+        [SerializeField] private Vector3 pinkyMidEuler;
+        [SerializeField] private Vector3 pinkyTipEuler;
 
         [Header("Zamanlama")]
-        [Tooltip("Pozun kalkma suresi (saniye).")]
         [SerializeField] private float riseDuration = 0.08f;
-        [Tooltip("Son atistan sonra pozda kalma suresi (saniye).")]
-        [SerializeField] private float holdTimeout = 0.35f;
-        [Tooltip("Normale donme suresi (saniye).")]
-        [SerializeField] private float returnDuration = 0.25f;
+        [SerializeField] private float holdTimeout = 1.5f;
+        [SerializeField] private float returnDuration = 0.3f;
+
+        [Header("Geri Tepme (Recoil)")]
+        [SerializeField] private Vector3 recoilKickEuler = new Vector3(-8f, 0f, 0f);
+        [SerializeField] private float recoilRecoverySpeed = 8f;
 
         private Transform _rightUpperArm;
         private Transform _rightLowerArm;
         private Transform _rightHand;
-        private Transform _leftUpperArm;
-        private Transform _leftLowerArm;
-        private Transform _leftHand;
+
+        private Transform _thumb, _thumbMid, _thumbTip;
+        private Transform _index, _indexMid, _indexTip;
+        private Transform _middle, _middleMid, _middleTip;
+        private Transform _ring, _ringMid, _ringTip;
+        private Transform _pinky, _pinkyMid, _pinkyTip;
 
         private float _currentWeight;
         private float _lastFireTime = -999f;
+        private Vector3 _recoilCurrent;
 
         private void Awake()
         {
-            if (characterAnimator == null)
-            {
-                characterAnimator = GetComponent<Animator>();
-            }
-            if (cameraTransform == null && Camera.main != null)
-            {
-                cameraTransform = Camera.main.transform;
-            }
+            if (characterAnimator == null) characterAnimator = GetComponent<Animator>();
+            if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;
             ResolveBones();
         }
 
@@ -54,42 +80,96 @@ namespace Project.Gameplay.Player
             _rightUpperArm = characterAnimator.GetBoneTransform(HumanBodyBones.RightUpperArm);
             _rightLowerArm = characterAnimator.GetBoneTransform(HumanBodyBones.RightLowerArm);
             _rightHand = characterAnimator.GetBoneTransform(HumanBodyBones.RightHand);
-            _leftUpperArm = characterAnimator.GetBoneTransform(HumanBodyBones.LeftUpperArm);
-            _leftLowerArm = characterAnimator.GetBoneTransform(HumanBodyBones.LeftLowerArm);
-            _leftHand = characterAnimator.GetBoneTransform(HumanBodyBones.LeftHand);
+
+            _thumb = FindDeep(_rightHand, "thumb_01_r");
+            _thumbMid = FindDeep(_rightHand, "thumb_02_r");
+            _thumbTip = FindDeep(_rightHand, "thumb_03_r");
+
+            _index = FindDeep(_rightHand, "index_01_r");
+            _indexMid = FindDeep(_rightHand, "index_02_r");
+            _indexTip = FindDeep(_rightHand, "index_03_r");
+
+            _middle = FindDeep(_rightHand, "middle_01_r");
+            _middleMid = FindDeep(_rightHand, "middle_02_r");
+            _middleTip = FindDeep(_rightHand, "middle_03_r");
+
+            _ring = FindDeep(_rightHand, "ring_01_r");
+            _ringMid = FindDeep(_rightHand, "ring_02_r");
+            _ringTip = FindDeep(_rightHand, "ring_03_r");
+
+            _pinky = FindDeep(_rightHand, "pinky_01_r");
+            _pinkyMid = FindDeep(_rightHand, "pinky_02_r");
+            _pinkyTip = FindDeep(_rightHand, "pinky_03_r");
+        }
+
+        private static Transform FindDeep(Transform parent, string name)
+        {
+            if (parent == null) return null;
+            foreach (Transform child in parent)
+            {
+                if (child.name == name) return child;
+                var found = FindDeep(child, name);
+                if (found != null) return found;
+            }
+            return null;
         }
 
         public void TriggerFire()
         {
             _lastFireTime = Time.time;
+            _recoilCurrent += recoilKickEuler;
+            _recoilCurrent = Vector3.ClampMagnitude(_recoilCurrent, recoilKickEuler.magnitude * 3f);
         }
 
         private void LateUpdate()
         {
-            bool wantsRaised = (Time.time - _lastFireTime) <= holdTimeout;
-
-            if (!wantsRaised && _currentWeight <= 0f) return;
-            if (cameraTransform == null) return;
-
             if (_rightUpperArm == null)
             {
                 ResolveBones();
-                if (_rightUpperArm == null) return;
             }
 
+            if (fixIndexPosition)
+            {
+                if (_index != null) _index.localPosition = indexLocalPosition;
+                if (_indexMid != null) _indexMid.localPosition = indexMidLocalPosition;
+                if (_indexTip != null) _indexTip.localPosition = indexTipLocalPosition;
+            }
+
+            bool wantsRaised = (Time.time - _lastFireTime) <= holdTimeout;
             float target = wantsRaised ? 1f : 0f;
             float duration = wantsRaised ? riseDuration : returnDuration;
             float speed = duration > 0f ? 1f / duration : 999f;
-
             _currentWeight = Mathf.MoveTowards(_currentWeight, target, speed * Time.deltaTime);
-            if (_currentWeight <= 0f) return;
 
-            ApplyBone(_rightUpperArm, rightUpperArmRelativeEuler);
-            ApplyBone(_rightLowerArm, rightLowerArmRelativeEuler);
-            ApplyBone(_rightHand, rightHandRelativeEuler);
-            ApplyBone(_leftUpperArm, leftUpperArmRelativeEuler);
-            ApplyBone(_leftLowerArm, leftLowerArmRelativeEuler);
-            ApplyBone(_leftHand, leftHandRelativeEuler);
+            _recoilCurrent = Vector3.Lerp(_recoilCurrent, Vector3.zero, recoilRecoverySpeed * Time.deltaTime);
+
+            if (_currentWeight <= 0f) return;
+            if (cameraTransform == null) return;
+            if (_rightUpperArm == null) return;
+
+            ApplyBone(_rightUpperArm, rightUpperArmRelativeEuler + _recoilCurrent * 0.3f);
+            ApplyBone(_rightLowerArm, rightLowerArmRelativeEuler + _recoilCurrent * 0.6f);
+            ApplyBone(_rightHand, rightHandRelativeEuler + _recoilCurrent);
+
+            ApplyFinger(_thumb, thumbEuler);
+            ApplyFinger(_thumbMid, thumbMidEuler);
+            ApplyFinger(_thumbTip, thumbTipEuler);
+
+            ApplyFinger(_index, indexEuler);
+            ApplyFinger(_indexMid, indexMidEuler);
+            ApplyFinger(_indexTip, indexTipEuler);
+
+            ApplyFinger(_middle, middleEuler);
+            ApplyFinger(_middleMid, middleMidEuler);
+            ApplyFinger(_middleTip, middleTipEuler);
+
+            ApplyFinger(_ring, ringEuler);
+            ApplyFinger(_ringMid, ringMidEuler);
+            ApplyFinger(_ringTip, ringTipEuler);
+
+            ApplyFinger(_pinky, pinkyEuler);
+            ApplyFinger(_pinkyMid, pinkyMidEuler);
+            ApplyFinger(_pinkyTip, pinkyTipEuler);
         }
 
         private void ApplyBone(Transform bone, Vector3 relativeEuler)
@@ -99,19 +179,38 @@ namespace Project.Gameplay.Player
             bone.rotation = Quaternion.Slerp(bone.rotation, desiredWorld, _currentWeight);
         }
 
+        private void ApplyFinger(Transform bone, Vector3 localEuler)
+        {
+            if (bone == null) return;
+            bone.localRotation = Quaternion.Slerp(bone.localRotation, Quaternion.Euler(localEuler), _currentWeight);
+        }
+
 #if UNITY_EDITOR
         public Transform EditorRightUpperArm => _rightUpperArm != null ? _rightUpperArm : GetBone(HumanBodyBones.RightUpperArm);
         public Transform EditorRightLowerArm => _rightLowerArm != null ? _rightLowerArm : GetBone(HumanBodyBones.RightLowerArm);
         public Transform EditorRightHand => _rightHand != null ? _rightHand : GetBone(HumanBodyBones.RightHand);
-        public Transform EditorLeftUpperArm => _leftUpperArm != null ? _leftUpperArm : GetBone(HumanBodyBones.LeftUpperArm);
-        public Transform EditorLeftLowerArm => _leftLowerArm != null ? _leftLowerArm : GetBone(HumanBodyBones.LeftLowerArm);
-        public Transform EditorLeftHand => _leftHand != null ? _leftHand : GetBone(HumanBodyBones.LeftHand);
 
-        private Transform GetBone(HumanBodyBones bone)
-        {
-            return characterAnimator != null ? characterAnimator.GetBoneTransform(bone) : null;
-        }
+        public Transform EditorThumb => _thumb;
+        public Transform EditorThumbMid => _thumbMid;
+        public Transform EditorThumbTip => _thumbTip;
 
+        public Transform EditorIndex => _index;
+        public Transform EditorIndexMid => _indexMid;
+        public Transform EditorIndexTip => _indexTip;
+
+        public Transform EditorMiddle => _middle;
+        public Transform EditorMiddleMid => _middleMid;
+        public Transform EditorMiddleTip => _middleTip;
+
+        public Transform EditorRing => _ring;
+        public Transform EditorRingMid => _ringMid;
+        public Transform EditorRingTip => _ringTip;
+
+        public Transform EditorPinky => _pinky;
+        public Transform EditorPinkyMid => _pinkyMid;
+        public Transform EditorPinkyTip => _pinkyTip;
+
+        private Transform GetBone(HumanBodyBones bone) => characterAnimator != null ? characterAnimator.GetBoneTransform(bone) : null;
         public void EditorResolveBones() => ResolveBones();
 #endif
     }
