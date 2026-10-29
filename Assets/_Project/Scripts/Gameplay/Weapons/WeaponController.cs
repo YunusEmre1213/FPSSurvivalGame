@@ -18,6 +18,8 @@ namespace Project.Gameplay.Weapons
         [SerializeField] private Camera fireCamera;
         [Tooltip("Kameraya bagli, silah modelinin yerlestirilecegi bos transform.")]
         [SerializeField] private Transform weaponSocket;
+        [Tooltip("Silah takiliyken kol/el pozunu yoneten controller.")]
+        [SerializeField] private HeldWeaponArmPose handPoseController;
 
         [Header("Silah verisi")]
         [SerializeField] private WeaponBaseData baseWeapon;
@@ -98,7 +100,7 @@ namespace Project.Gameplay.Weapons
         private float _reloadTimer;
         private Vector3 _reloadPosOffset;
         private Vector3 _reloadRotOffset;
-        private bool _isEquipped = true; 
+        private bool _isEquipped = true;
 
         private void Awake()
         {
@@ -261,6 +263,7 @@ namespace Project.Gameplay.Weapons
             PlaySound(fireSound);
             ApplyRecoilKick();
             PlayFireAnimation();
+            handPoseController?.TriggerFire();
             SpawnMuzzleFlash();
 
             if (Random.value < _stats.MalfunctionChance)
@@ -350,7 +353,7 @@ namespace Project.Gameplay.Weapons
             if (muzzleFlashPrefab == null || _muzzlePoint == null) return;
 
             var flash = Instantiate(muzzleFlashPrefab, _muzzlePoint.position, _muzzlePoint.rotation, _muzzlePoint);
-            Destroy(flash, 0.2f); 
+            Destroy(flash, 0.2f);
         }
         private void PlayReloadAnimation()
         {

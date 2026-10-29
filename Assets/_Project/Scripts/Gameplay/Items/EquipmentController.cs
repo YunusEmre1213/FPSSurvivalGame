@@ -21,6 +21,16 @@ namespace Project.Gameplay.Items
         [SerializeField] private BucketData bucketItem;
         [SerializeField] private BucketController bucketController;
 
+        [Header("Animasyon - Esyaya Ozel Durus")]
+        [Tooltip("Govdeyi gosteren karakter modelinin Animator component'i.")]
+        [SerializeField] private Animator animator;
+        [Tooltip("Varsayilan Animator Controller - Fener ve Kova icin kullanilir.")]
+        [SerializeField] private RuntimeAnimatorController defaultAnimatorController;
+        [Tooltip("Tabanca elde oldugunda kullanilacak Override Controller.")]
+        [SerializeField] private AnimatorOverrideController pistolAnimatorController;
+        [Tooltip("Balta elde oldugunda kullanilacak Override Controller.")]
+        [SerializeField] private AnimatorOverrideController axeAnimatorController;
+
         private enum EquippedItem { Weapon, Flashlight, Axe, Bucket }
         private EquippedItem _current = EquippedItem.Weapon;
         private IInputProvider _input;
@@ -130,7 +140,23 @@ namespace Project.Gameplay.Items
             flashlightController.SetEquipped(_current == EquippedItem.Flashlight);
             axeController.SetEquipped(_current == EquippedItem.Axe);
             bucketController.SetEquipped(_current == EquippedItem.Bucket);
+            UpdateAnimatorController();
             Debug.Log($"[EquipmentController] Elde: {_current}");
+        }
+
+        private void UpdateAnimatorController()
+        {
+            if (animator == null) return;
+
+            switch (_current)
+            {
+                case EquippedItem.Axe:
+                    animator.runtimeAnimatorController = axeAnimatorController != null ? axeAnimatorController : defaultAnimatorController;
+                    break;
+                default:
+                    animator.runtimeAnimatorController = defaultAnimatorController;
+                    break;
+            }
         }
     }
 }
