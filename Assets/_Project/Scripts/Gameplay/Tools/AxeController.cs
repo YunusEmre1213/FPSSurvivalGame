@@ -12,6 +12,7 @@ namespace Project.Gameplay.Tools
         [SerializeField] private Transform axeSocket;
         [SerializeField] private AxeData axeData;
         [SerializeField] private AudioSource audioSource;
+        [SerializeField] private HeldWeaponArmPose handPoseController;
 
         [Header("Elde Durus (Rest Pose)")]
         [Tooltip("Balta elde dururken (sallamadan once/sonra) socket'e gore yerel pozisyon offseti.")]
@@ -114,6 +115,8 @@ namespace Project.Gameplay.Tools
             _isSwinging = true;
             _swingProgress = 0f;
 
+            handPoseController?.TriggerFire();
+
             if (audioSource != null && axeData != null && axeData.swingSound != null)
             {
                 audioSource.PlayOneShot(axeData.swingSound);
@@ -133,6 +136,8 @@ namespace Project.Gameplay.Tools
                 _currentPositionOffset = swingPositionOffset * t;
                 _currentRotationOffset = swingRotationOffset * t;
 
+                handPoseController?.SetSwingProgress(t);
+
                 if (_swingProgress >= 1f) _isSwinging = false;
             }
             else
@@ -141,6 +146,8 @@ namespace Project.Gameplay.Tools
 
                 _currentPositionOffset = Vector3.Lerp(_currentPositionOffset, _bobPositionOffset, recoverySpeed * Time.deltaTime);
                 _currentRotationOffset = Vector3.Lerp(_currentRotationOffset, _bobRotationOffset, recoverySpeed * Time.deltaTime);
+
+                handPoseController?.SetSwingProgress(0f);
             }
 
             _axeModelInstance.transform.localPosition = _basePosition + _currentPositionOffset;

@@ -13,6 +13,7 @@ namespace Project.Gameplay.Items
         [SerializeField] private GameObject flashlightModelPrefab;
         [SerializeField] private Vector3 modelPositionOffset;
         [SerializeField] private Vector3 modelRotationOffset;
+        [SerializeField] private HeldWeaponArmPose handPoseController;
 
         [Header("Isik")]
         [Tooltip("Fener modelinin ICINDE, Light bileseninin oldugu objenin ADI.")]
@@ -195,6 +196,8 @@ namespace Project.Gameplay.Items
             }
 
             IsOn = on && CurrentBattery > 0f && _isEquipped;
+
+            handPoseController?.SetOn(IsOn);
 
             if (_activeLight != null)
             {

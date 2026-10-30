@@ -2,15 +2,24 @@ using UnityEditor;
 using UnityEngine;
 using Project.Gameplay.Player;
 using Project.Gameplay.Weapons;
+using Project.Gameplay.Tools;
+using Project.Gameplay.Items;
 using Project.Data;
 
 namespace Project.Editor
 {
     public class WeaponHoldPoseEditorWindow : EditorWindow
     {
+        private enum ItemType { Weapon, Axe, Flashlight }
+
         private HeldWeaponArmPose _target;
+        private ItemType _itemType = ItemType.Weapon;
+
         private WeaponController _weaponController;
+        private AxeController _axeController;
+        private FlashlightController _flashlightController;
         private WeaponBaseData _baseWeaponData;
+
         private GameObject _weaponPreview;
         private Transform _selectedBone;
         private bool _weaponSelected;
@@ -40,7 +49,27 @@ namespace Project.Editor
             var newTarget = (HeldWeaponArmPose)EditorGUILayout.ObjectField("Karakter (HeldWeaponArmPose)", _target, typeof(HeldWeaponArmPose), true);
             if (EditorGUI.EndChangeCheck()) { _target = newTarget; if (_target != null) _target.EditorResolveBones(); }
 
-            _weaponController = (WeaponController)EditorGUILayout.ObjectField("Silah (WeaponController)", _weaponController, typeof(WeaponController), true);
+            EditorGUILayout.Space(5);
+            var newItemType = (ItemType)EditorGUILayout.EnumPopup("Hangi Esya?", _itemType);
+            if (newItemType != _itemType)
+            {
+                _itemType = newItemType;
+                if (_weaponPreview != null) { DestroyImmediate(_weaponPreview); _weaponPreview = null; }
+            }
+
+            switch (_itemType)
+            {
+                case ItemType.Weapon:
+                    _weaponController = (WeaponController)EditorGUILayout.ObjectField("Silah (WeaponController)", _weaponController, typeof(WeaponController), true);
+                    break;
+                case ItemType.Axe:
+                    _axeController = (AxeController)EditorGUILayout.ObjectField("Balta (AxeController)", _axeController, typeof(AxeController), true);
+                    break;
+                case ItemType.Flashlight:
+                    _flashlightController = (FlashlightController)EditorGUILayout.ObjectField("Fener (FlashlightController)", _flashlightController, typeof(FlashlightController), true);
+                    break;
+            }
+
             if (_target == null)
             {
                 EditorGUILayout.HelpBox("Once karakter uzerindeki HeldWeaponArmPose'u surukle.", MessageType.Info);
@@ -50,7 +79,7 @@ namespace Project.Editor
             _target.EditorResolveBones();
 
             EditorGUILayout.Space(10);
-            if (GUILayout.Button(_weaponPreview == null ? "Silahi Goster" : "Silah Gosteriliyor", GUILayout.Height(30))) ShowWeaponPreview();
+            if (GUILayout.Button(_weaponPreview == null ? "Esyayi Goster" : "Esya Gosteriliyor", GUILayout.Height(30))) ShowPreview();
 
             EditorGUILayout.Space(10);
             EditorGUILayout.LabelField("Sag kol kemiklerini sirayla sec, Scene'de Rotate (E) ile dondur:", EditorStyles.boldLabel);
@@ -90,8 +119,8 @@ namespace Project.Editor
             if (GUILayout.Button("Uc", GUILayout.Height(26))) SelectBone(_target.EditorPinkyTip);
 
             EditorGUILayout.Space(10);
-            EditorGUILayout.LabelField("Silahin kendisi:", EditorStyles.boldLabel);
-            if (GUILayout.Button("Silah (Weapon)", GUILayout.Height(32))) SelectWeaponForEditing();
+            EditorGUILayout.LabelField("Esyanin kendisi:", EditorStyles.boldLabel);
+            if (GUILayout.Button("Esya (Konum/Aci icin sec)", GUILayout.Height(32))) SelectWeaponForEditing();
 
             if (_selectedBone != null && !_weaponSelected)
             {
@@ -102,14 +131,24 @@ namespace Project.Editor
             else if (_weaponSelected && _weaponPreview != null)
             {
                 EditorGUILayout.Space(5);
-                EditorGUILayout.LabelField("Secili: Silah");
-                EditorGUILayout.HelpBox("Move (W) / Rotate (E) ile silahin konumunu/acisini ayarla.", MessageType.None);
+                EditorGUILayout.LabelField("Secili: Esya");
+                EditorGUILayout.HelpBox("Move (W) / Rotate (E) ile esyanin konumunu/acisini ayarla.", MessageType.None);
             }
 
             EditorGUILayout.Space(15);
             if (GUILayout.Button("Pozu Kaydet", GUILayout.Height(35))) SavePose();
 
             EditorGUILayout.EndScrollView();
+        }
+
+        private void ShowPreview()
+        {
+            switch (_itemType)
+            {
+                case ItemType.Weapon: ShowWeaponPreview(); break;
+                case ItemType.Axe: ShowAxePreview(); break;
+                case ItemType.Flashlight: ShowFlashlightPreview(); break;
+            }
         }
 
         private void ShowWeaponPreview()
@@ -133,9 +172,65 @@ namespace Project.Editor
             if (_weaponPreview == null)
             {
                 _weaponPreview = Instantiate(baseWeapon.weaponModelPrefab, socket);
-                _weaponPreview.name = "_HoldPosePreview_Weapon";
+                _weaponPreview.name = "_HoldPosePreview_Item";
                 _weaponPreview.transform.localPosition = baseWeapon.modelPositionOffset;
                 _weaponPreview.transform.localRotation = Quaternion.Euler(baseWeapon.modelRotationOffset);
+            }
+        }
+
+        private void ShowAxePreview()
+        {
+            if (_axeController == null) { Debug.LogWarning("[WeaponHoldPoseEditorWindow] Once 'Balta (AxeController)' alanina surukle."); return; }
+
+            var so = new SerializedObject(_axeController);
+            var socketProp = so.FindProperty("axeSocket");
+            var dataProp = so.FindProperty("axeData");
+            var posProp = so.FindProperty("restPositionOffset");
+            var rotProp = so.FindProperty("restRotationOffset");
+
+            var socket = socketProp != null ? socketProp.objectReferenceValue as Transform : null;
+            var axeData = dataProp != null ? dataProp.objectReferenceValue as AxeData : null;
+
+            if (socket == null || axeData == null || axeData.axeModelPrefab == null)
+            {
+                Debug.LogWarning("[WeaponHoldPoseEditorWindow] AxeController'in Axe Socket / Axe Data / Axe Model Prefab alanlari eksik.");
+                return;
+            }
+
+            if (_weaponPreview == null)
+            {
+                _weaponPreview = Instantiate(axeData.axeModelPrefab, socket);
+                _weaponPreview.name = "_HoldPosePreview_Item";
+                _weaponPreview.transform.localPosition = posProp != null ? posProp.vector3Value : Vector3.zero;
+                _weaponPreview.transform.localRotation = Quaternion.Euler(rotProp != null ? rotProp.vector3Value : Vector3.zero);
+            }
+        }
+
+        private void ShowFlashlightPreview()
+        {
+            if (_flashlightController == null) { Debug.LogWarning("[WeaponHoldPoseEditorWindow] Once 'Fener (FlashlightController)' alanina surukle."); return; }
+
+            var so = new SerializedObject(_flashlightController);
+            var socketProp = so.FindProperty("flashlightSocket");
+            var prefabProp = so.FindProperty("flashlightModelPrefab");
+            var posProp = so.FindProperty("modelPositionOffset");
+            var rotProp = so.FindProperty("modelRotationOffset");
+
+            var socket = socketProp != null ? socketProp.objectReferenceValue as Transform : null;
+            var prefab = prefabProp != null ? prefabProp.objectReferenceValue as GameObject : null;
+
+            if (socket == null || prefab == null)
+            {
+                Debug.LogWarning("[WeaponHoldPoseEditorWindow] FlashlightController'in Flashlight Socket / Flashlight Model Prefab alanlari eksik.");
+                return;
+            }
+
+            if (_weaponPreview == null)
+            {
+                _weaponPreview = Instantiate(prefab, socket);
+                _weaponPreview.name = "_HoldPosePreview_Item";
+                _weaponPreview.transform.localPosition = posProp != null ? posProp.vector3Value : Vector3.zero;
+                _weaponPreview.transform.localRotation = Quaternion.Euler(rotProp != null ? rotProp.vector3Value : Vector3.zero);
             }
         }
 
@@ -150,7 +245,7 @@ namespace Project.Editor
 
         private void SelectWeaponForEditing()
         {
-            if (_weaponPreview == null) { Debug.LogWarning("[WeaponHoldPoseEditorWindow] Once 'Silahi Goster'e bas."); return; }
+            if (_weaponPreview == null) { Debug.LogWarning("[WeaponHoldPoseEditorWindow] Once 'Esyayi Goster'e bas."); return; }
             _selectedBone = null; _weaponSelected = true;
             Selection.activeGameObject = _weaponPreview;
             Tools.current = Tool.Move;
@@ -215,16 +310,46 @@ namespace Project.Editor
             so.ApplyModifiedProperties();
             EditorUtility.SetDirty(_target);
 
-            if (_weaponPreview != null && _baseWeaponData != null)
+            if (_weaponPreview != null)
             {
-                var weaponSo = new SerializedObject(_baseWeaponData);
-                weaponSo.FindProperty("modelPositionOffset").vector3Value = _weaponPreview.transform.localPosition;
-                weaponSo.FindProperty("modelRotationOffset").vector3Value = _weaponPreview.transform.localEulerAngles;
-                weaponSo.ApplyModifiedProperties();
-                EditorUtility.SetDirty(_baseWeaponData);
+                switch (_itemType)
+                {
+                    case ItemType.Weapon:
+                        if (_baseWeaponData != null)
+                        {
+                            var weaponSo = new SerializedObject(_baseWeaponData);
+                            weaponSo.FindProperty("modelPositionOffset").vector3Value = _weaponPreview.transform.localPosition;
+                            weaponSo.FindProperty("modelRotationOffset").vector3Value = _weaponPreview.transform.localEulerAngles;
+                            weaponSo.ApplyModifiedProperties();
+                            EditorUtility.SetDirty(_baseWeaponData);
+                        }
+                        break;
+                    case ItemType.Axe:
+                        if (_axeController != null)
+                        {
+                            var axeSo = new SerializedObject(_axeController);
+                            axeSo.FindProperty("restPositionOffset").vector3Value = _weaponPreview.transform.localPosition;
+                            axeSo.FindProperty("restRotationOffset").vector3Value = _weaponPreview.transform.localEulerAngles;
+                            axeSo.ApplyModifiedProperties();
+                            EditorUtility.SetDirty(_axeController);
+                        }
+                        break;
+                    case ItemType.Flashlight:
+                        if (_flashlightController != null)
+                        {
+                            var flashSo = new SerializedObject(_flashlightController);
+                            flashSo.FindProperty("modelPositionOffset").vector3Value = _weaponPreview.transform.localPosition;
+                            flashSo.FindProperty("modelRotationOffset").vector3Value = _weaponPreview.transform.localEulerAngles;
+                            flashSo.ApplyModifiedProperties();
+                            EditorUtility.SetDirty(_flashlightController);
+                        }
+                        break;
+                }
+
+                DestroyImmediate(_weaponPreview);
+                _weaponPreview = null;
             }
 
-            if (_weaponPreview != null) { DestroyImmediate(_weaponPreview); _weaponPreview = null; }
             Debug.Log("[WeaponHoldPoseEditorWindow] Poz kaydedildi.");
         }
 

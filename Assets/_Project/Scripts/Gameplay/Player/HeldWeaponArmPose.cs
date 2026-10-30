@@ -49,9 +49,17 @@ namespace Project.Gameplay.Player
         [SerializeField] private float holdTimeout = 1.5f;
         [SerializeField] private float returnDuration = 0.3f;
 
+        [Header("Mod: false = Ates/Vurus tetiklemeli (Silah/Balta), true = Acik/Kapali (Fener)")]
+        [SerializeField] private bool useToggleMode = false;
+
         [Header("Geri Tepme (Recoil)")]
         [SerializeField] private Vector3 recoilKickEuler = new Vector3(-8f, 0f, 0f);
         [SerializeField] private float recoilRecoverySpeed = 8f;
+
+        [Header("Vurus Sirasinda Kol Hareketi (Balta icin)")]
+        [SerializeField] private Vector3 swingUpperArmExtraEuler;
+        [SerializeField] private Vector3 swingLowerArmExtraEuler;
+        [SerializeField] private Vector3 swingHandExtraEuler;
 
         private Transform _rightUpperArm;
         private Transform _rightLowerArm;
@@ -65,7 +73,9 @@ namespace Project.Gameplay.Player
 
         private float _currentWeight;
         private float _lastFireTime = -999f;
+        private bool _isOn;
         private Vector3 _recoilCurrent;
+        private float _swingBlend;
 
         private void Awake()
         {
@@ -121,8 +131,19 @@ namespace Project.Gameplay.Player
             _recoilCurrent = Vector3.ClampMagnitude(_recoilCurrent, recoilKickEuler.magnitude * 3f);
         }
 
+        public void SetOn(bool on)
+        {
+            _isOn = on;
+        }
+
+        public void SetSwingProgress(float t)
+        {
+            _swingBlend = Mathf.Clamp01(t);
+        }
+
         private void LateUpdate()
         {
+
             if (_rightUpperArm == null)
             {
                 ResolveBones();
@@ -135,7 +156,7 @@ namespace Project.Gameplay.Player
                 if (_indexTip != null) _indexTip.localPosition = indexTipLocalPosition;
             }
 
-            bool wantsRaised = (Time.time - _lastFireTime) <= holdTimeout;
+            bool wantsRaised = useToggleMode ? _isOn : (Time.time - _lastFireTime) <= holdTimeout;
             float target = wantsRaised ? 1f : 0f;
             float duration = wantsRaised ? riseDuration : returnDuration;
             float speed = duration > 0f ? 1f / duration : 999f;
@@ -147,9 +168,9 @@ namespace Project.Gameplay.Player
             if (cameraTransform == null) return;
             if (_rightUpperArm == null) return;
 
-            ApplyBone(_rightUpperArm, rightUpperArmRelativeEuler + _recoilCurrent * 0.3f);
-            ApplyBone(_rightLowerArm, rightLowerArmRelativeEuler + _recoilCurrent * 0.6f);
-            ApplyBone(_rightHand, rightHandRelativeEuler + _recoilCurrent);
+            ApplyBone(_rightUpperArm, rightUpperArmRelativeEuler + _recoilCurrent * 0.3f + swingUpperArmExtraEuler * _swingBlend);
+            ApplyBone(_rightLowerArm, rightLowerArmRelativeEuler + _recoilCurrent * 0.6f + swingLowerArmExtraEuler * _swingBlend);
+            ApplyBone(_rightHand, rightHandRelativeEuler + _recoilCurrent + swingHandExtraEuler * _swingBlend);
 
             ApplyFinger(_thumb, thumbEuler);
             ApplyFinger(_thumbMid, thumbMidEuler);
