@@ -8,7 +8,7 @@ namespace Project.Gameplay.Player
         [SerializeField] private Animator characterAnimator;
         [SerializeField] private Transform cameraTransform;
 
-        [Header("Sag kol - kameraya GORE acilar (ates pozu)")]
+        [Header("Sag kol - kameraya GORE acilar (ates/tutus pozu)")]
         [SerializeField] private Vector3 rightUpperArmRelativeEuler;
         [SerializeField] private Vector3 rightLowerArmRelativeEuler;
         [SerializeField] private Vector3 rightHandRelativeEuler;
@@ -56,10 +56,20 @@ namespace Project.Gameplay.Player
         [SerializeField] private Vector3 recoilKickEuler = new Vector3(-8f, 0f, 0f);
         [SerializeField] private float recoilRecoverySpeed = 8f;
 
-        [Header("Vurus Sirasinda Kol Hareketi (Balta icin)")]
-        [SerializeField] private Vector3 swingUpperArmExtraEuler;
-        [SerializeField] private Vector3 swingLowerArmExtraEuler;
-        [SerializeField] private Vector3 swingHandExtraEuler;
+        [Header("Balta Sallama - KAMERAYA GORE pitch (derece, X = yukari/asagi)")]
+        [Tooltip("Bu aci artik Ready pozunun kendi dondurulmus eksenine degil, KAMERANIN eksenine gore uygulaniyor. Negatif = yukari, pozitif = asagi (ters calisirsa isaretini degistir).")]
+        [SerializeField] private float windupUpperArmPitch = -35f;
+        [SerializeField] private float windupLowerArmPitch = -20f;
+        [SerializeField] private float windupHandPitch = -10f;
+
+        [Tooltip("Vurus aninda kameraya gore ek pitch. Tam asagi degil, orta siddette bir deger onerilir.")]
+        [SerializeField] private float strikeUpperArmPitch = 30f;
+        [SerializeField] private float strikeLowerArmPitch = 20f;
+        [SerializeField] private float strikeHandPitch = 15f;
+
+        [Tooltip("Toplam sallama ilerlemesinin (0-1) ne kadarinin Ready->Windup (kaldirma) fazina ayrilacagi.")]
+        [Range(0.05f, 0.6f)]
+        [SerializeField] private float windupFraction = 0.35f;
 
         private Transform _rightUpperArm;
         private Transform _rightLowerArm;
@@ -143,7 +153,6 @@ namespace Project.Gameplay.Player
 
         private void LateUpdate()
         {
-
             if (_rightUpperArm == null)
             {
                 ResolveBones();
@@ -168,9 +177,9 @@ namespace Project.Gameplay.Player
             if (cameraTransform == null) return;
             if (_rightUpperArm == null) return;
 
-            ApplyBone(_rightUpperArm, rightUpperArmRelativeEuler + _recoilCurrent * 0.3f + swingUpperArmExtraEuler * _swingBlend);
-            ApplyBone(_rightLowerArm, rightLowerArmRelativeEuler + _recoilCurrent * 0.6f + swingLowerArmExtraEuler * _swingBlend);
-            ApplyBone(_rightHand, rightHandRelativeEuler + _recoilCurrent + swingHandExtraEuler * _swingBlend);
+            ApplyBoneBlend(_rightUpperArm, rightUpperArmRelativeEuler, windupUpperArmPitch, strikeUpperArmPitch, _recoilCurrent * 0.3f);
+            ApplyBoneBlend(_rightLowerArm, rightLowerArmRelativeEuler, windupLowerArmPitch, strikeLowerArmPitch, _recoilCurrent * 0.6f);
+            ApplyBoneBlend(_rightHand, rightHandRelativeEuler, windupHandPitch, strikeHandPitch, _recoilCurrent);
 
             ApplyFinger(_thumb, thumbEuler);
             ApplyFinger(_thumbMid, thumbMidEuler);
@@ -193,10 +202,35 @@ namespace Project.Gameplay.Player
             ApplyFinger(_pinkyTip, pinkyTipEuler);
         }
 
-        private void ApplyBone(Transform bone, Vector3 relativeEuler)
+        private void ApplyBoneBlend(Transform bone, Vector3 readyEuler, float windupPitch, float strikePitch, Vector3 recoilAdd)
         {
             if (bone == null) return;
-            Quaternion desiredWorld = cameraTransform.rotation * Quaternion.Euler(relativeEuler);
+
+            Quaternion readyLocal = Quaternion.Euler(readyEuler) * Quaternion.Euler(recoilAdd);
+
+            Quaternion windupPitchQuat = Quaternion.Euler(windupPitch, 0f, 0f);
+            Quaternion peakPitchQuat = Quaternion.Euler(strikePitch, 0f, 0f);
+
+            Quaternion blendedPitch;
+
+            if (_swingBlend < windupFraction)
+            {
+                // Faz 1: duz (0) -> Windup pitch
+                float phaseT = windupFraction > 0f ? _swingBlend / windupFraction : 1f;
+                phaseT = Mathf.SmoothStep(0f, 1f, phaseT);
+                blendedPitch = Quaternion.Slerp(Quaternion.identity, windupPitchQuat, phaseT);
+            }
+            else
+            {
+                // Faz 2: Windup pitch -> Strike pitch
+                float remaining = 1f - windupFraction;
+                float phaseT = remaining > 0f ? (_swingBlend - windupFraction) / remaining : 1f;
+                phaseT = Mathf.SmoothStep(0f, 1f, phaseT);
+                blendedPitch = Quaternion.Slerp(windupPitchQuat, peakPitchQuat, phaseT);
+            }
+
+            // Pitch, KAMERA ekseninde uygulaniyor (Ready pozunun kendi donmus ekseninde degil).
+            Quaternion desiredWorld = cameraTransform.rotation * blendedPitch * readyLocal;
             bone.rotation = Quaternion.Slerp(bone.rotation, desiredWorld, _currentWeight);
         }
 

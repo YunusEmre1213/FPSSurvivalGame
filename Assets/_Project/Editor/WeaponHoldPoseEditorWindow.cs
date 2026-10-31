@@ -70,6 +70,9 @@ namespace Project.Editor
                     break;
             }
 
+            EditorGUILayout.Space(5);
+            EditorGUILayout.HelpBox("Normal tutus (bekleme) pozu kaydedilecek.", MessageType.None);
+
             if (_target == null)
             {
                 EditorGUILayout.HelpBox("Once karakter uzerindeki HeldWeaponArmPose'u surukle.", MessageType.Info);

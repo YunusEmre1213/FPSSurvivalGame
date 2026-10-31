@@ -15,27 +15,22 @@ namespace Project.Gameplay.Tools
         [SerializeField] private HeldWeaponArmPose handPoseController;
 
         [Header("Elde Durus (Rest Pose)")]
-        [Tooltip("Balta elde dururken (sallamadan once/sonra) socket'e gore yerel pozisyon offseti.")]
         [SerializeField] private Vector3 restPositionOffset;
-        [Tooltip("Balta elde dururken socket'e gore yerel rotasyon offseti (derece).")]
         [SerializeField] private Vector3 restRotationOffset;
 
         [Header("Vurus Ayarlari")]
         [SerializeField] private float swingRange = 3f;
         [SerializeField] private float swingCooldown = 0.6f;
         [SerializeField] private LayerMask hitMask = ~0;
-
-        [Header("Sallama Animasyonu (Vurus)")]
-        [SerializeField] private Vector3 swingPositionOffset = new Vector3(-0.1f, -0.15f, 0.3f);
-        [SerializeField] private Vector3 swingRotationOffset = new Vector3(45f, -20f, -10f);
-        [SerializeField] private float swingSpeed = 12f;
-        [SerializeField] private float recoverySpeed = 6f;
+        [Tooltip("Sallama sinyalinin kola ne hizda gonderilecegi (0->1 arasi ilerleme hizi).")]
+        [SerializeField] private float swingSpeed = 3f;
 
         [Header("Yuruyus Sallanmasi (Bob)")]
         [SerializeField] private float bobFrequency = 6f;
         [SerializeField] private float bobAmplitude = 0.025f;
         [SerializeField] private float sprintBobMultiplier = 1.6f;
         [SerializeField] private float blendSpeed = 5f;
+        [SerializeField] private float recoverySpeed = 6f;
 
         [Header("Yon Egilmesi (Lean)")]
         [SerializeField] private float strafeLeanAmount = 6f;
@@ -100,6 +95,7 @@ namespace Project.Gameplay.Tools
             if (_cooldownTimer > 0f) _cooldownTimer -= Time.deltaTime;
 
             UpdateAxeTransform();
+            UpdateSwingBlend();
 
             if (_input != null && _input.FirePressedThisFrame)
             {
@@ -125,33 +121,38 @@ namespace Project.Gameplay.Tools
             PerformHitDetection();
         }
 
-        private void UpdateAxeTransform()
+        private void UpdateSwingBlend()
         {
-            if (_axeModelInstance == null) return;
-
+            // Balta modeli elden hic ayrilmiyor (0 offset). Butun "sallama" hareketi
+            // kolun/elin kendisinden geliyor - HeldWeaponArmPose'daki Vurus Zirvesi pozu.
             if (_isSwinging)
             {
                 _swingProgress += Time.deltaTime * swingSpeed;
-                float t = Mathf.Sin(Mathf.Min(_swingProgress, 1f) * Mathf.PI);
-                _currentPositionOffset = swingPositionOffset * t;
-                _currentRotationOffset = swingRotationOffset * t;
-
-                handPoseController?.SetSwingProgress(t);
+                float progress = Mathf.Clamp01(_swingProgress);
+                handPoseController?.SetSwingProgress(progress);
 
                 if (_swingProgress >= 1f) _isSwinging = false;
             }
             else
             {
-                UpdateBob();
-
-                _currentPositionOffset = Vector3.Lerp(_currentPositionOffset, _bobPositionOffset, recoverySpeed * Time.deltaTime);
-                _currentRotationOffset = Vector3.Lerp(_currentRotationOffset, _bobRotationOffset, recoverySpeed * Time.deltaTime);
-
                 handPoseController?.SetSwingProgress(0f);
             }
+        }
 
-            _axeModelInstance.transform.localPosition = _basePosition + _currentPositionOffset;
-            _axeModelInstance.transform.localRotation = _baseRotation * Quaternion.Euler(_currentRotationOffset);
+        private void UpdateAxeTransform()
+        {
+            if (_axeModelInstance == null) return;
+
+            UpdateBob();
+
+            _currentPositionOffset = Vector3.Lerp(_currentPositionOffset, _bobPositionOffset, recoverySpeed * Time.deltaTime);
+            _currentRotationOffset = Vector3.Lerp(_currentRotationOffset, _bobRotationOffset, recoverySpeed * Time.deltaTime);
+
+            Quaternion newRotation = _baseRotation * Quaternion.Euler(_currentRotationOffset);
+            Vector3 newPosition = _basePosition + _currentPositionOffset;
+
+            _axeModelInstance.transform.localPosition = newPosition;
+            _axeModelInstance.transform.localRotation = newRotation;
         }
 
         private void UpdateBob()

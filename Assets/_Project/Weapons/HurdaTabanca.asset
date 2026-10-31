@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Project.Data.WeaponBaseData
   weaponName: Hurda Tabanca
   weaponModelPrefab: {fileID: 7757947126742549135, guid: 5c59210965ffbcc4093fe99a29edb777, type: 3}
-  modelPositionOffset: {x: 0.077, y: -0.066, z: -0.013}
-  modelRotationOffset: {x: 338.1245, y: 97.44617, z: 63.715652}
+  modelPositionOffset: {x: 0.082, y: -0.042, z: -0.02}
+  modelRotationOffset: {x: 357.77484, y: 66.45637, z: 65.04263}
   baseDamage: 23
   baseAccuracy: 0.7
   baseFireRate: 2
