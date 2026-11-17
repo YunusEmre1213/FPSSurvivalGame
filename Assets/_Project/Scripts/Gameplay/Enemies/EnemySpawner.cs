@@ -124,6 +124,8 @@ namespace Project.Gameplay.Enemies
             Debug.Log($"[EnemySpawner] Faz: {phase} - {oncuCount} oncu, {suruCount} suru, {eliteCount} elit, {wolfCount} kurt spawn ediliyor. " +
                       $"(Zorluk carpani: {difficultyMultiplier:F2}x, {dayNightService.NightsSurvived}. gece tamamlandi)");
 
+            EventBus.Publish(new EnemyWaveSpawnedEvent(phase, oncuCount, suruCount, eliteCount, wolfCount, difficultyMultiplier, dayNightService.NightsSurvived));
+
             SpawnCount(oncuPrefab, oncuCount, difficultyMultiplier, spawnPoints);
             SpawnCount(suruPrefab, suruCount, difficultyMultiplier, spawnPoints);
             SpawnCount(elitePrefab, eliteCount, difficultyMultiplier, spawnPoints);

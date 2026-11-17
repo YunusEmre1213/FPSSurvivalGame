@@ -1,3 +1,4 @@
+
 using UnityEngine;
 using UnityEngine.AI;
 using Project.Core;
@@ -30,6 +31,8 @@ namespace Project.Gameplay.Animals
         [SerializeField] private GameObject rawMeatPickupPrefab;
         [SerializeField] private int meatDropCount = 2;
         [SerializeField] private float meatDropHeight = 1f;
+        [Tooltip("Telemetri icin hayvan turu etiketi (orn. Geyik, Tavsan).")]
+        [SerializeField] private string animalTypeId = "Hayvan";
 
         [Header("Animasyon")]
         [SerializeField] private Animator animator;
@@ -131,7 +134,7 @@ namespace Project.Gameplay.Animals
                 return;
             }
 
-           
+
             if (!(_stateMachine.CurrentState is AnimalFleeState))
             {
                 ChangeState(new AnimalFleeState(this));
@@ -157,7 +160,7 @@ namespace Project.Gameplay.Animals
         {
             _isDead = true;
 
-            EventBus.Publish(new AnimalDiedEvent(transform.position));
+            EventBus.Publish(new AnimalDiedEvent(transform.position, meatDropCount, animalTypeId));
 
             DropMeat();
 

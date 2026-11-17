@@ -24,12 +24,13 @@ namespace Project.Gameplay.Player
 
         public void TakeDamage(float amount)
         {
-            if (IsDead) return; 
+            if (IsDead) return;
 
             _currentHealth = Mathf.Max(0f, _currentHealth - amount);
             Debug.Log($"[PlayerHealth] Oyuncu {amount} hasar aldi, kalan can: {_currentHealth}/{maxHealth}");
 
             EventBus.Publish(new PlayerHealthChangedEvent(_currentHealth, maxHealth));
+            EventBus.Publish(new PlayerDamagedEvent(amount, _currentHealth));
 
             if (_currentHealth <= 0f)
             {

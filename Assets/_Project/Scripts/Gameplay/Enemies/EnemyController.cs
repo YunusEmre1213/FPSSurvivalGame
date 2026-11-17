@@ -266,6 +266,7 @@ namespace Project.Gameplay.Enemies
 
             Debug.Log($"[EnemyController] {gameObject.name} oldu.");
             EventBus.Publish(new EnemyDiedEvent(transform.position));
+            EventBus.Publish(new EnemyKilledEvent(gameObject.name.Replace("(Clone)", "").Trim(), transform.position));
 
             _audioController?.PlayDeathSound();
 

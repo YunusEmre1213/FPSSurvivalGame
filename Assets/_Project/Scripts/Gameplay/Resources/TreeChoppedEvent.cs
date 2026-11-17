@@ -1,15 +1,16 @@
 using UnityEngine;
-using Project.Core;
 
-namespace Project.Gameplay.Resources
+namespace Project.Core
 {
     public readonly struct TreeChoppedEvent : IGameEvent
     {
         public readonly Vector3 Position;
+        public readonly int WoodAmount;
 
-        public TreeChoppedEvent(Vector3 position)
+        public TreeChoppedEvent(Vector3 position, int woodAmount)
         {
             Position = position;
+            WoodAmount = woodAmount;
         }
     }
 }

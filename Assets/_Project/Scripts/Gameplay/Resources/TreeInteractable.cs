@@ -1,3 +1,4 @@
+
 using System.Collections;
 using UnityEngine;
 using Project.Core;
@@ -104,7 +105,7 @@ namespace Project.Gameplay.Resources
 
             DropWood();
 
-            EventBus.Publish(new TreeChoppedEvent(transform.position));
+            EventBus.Publish(new TreeChoppedEvent(transform.position, woodAmountPerTree));
 
             float waitTime = lingerAfterFall;
             if (fallSound != null) waitTime = Mathf.Max(waitTime, fallSound.length);
