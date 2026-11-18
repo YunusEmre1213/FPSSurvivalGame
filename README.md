@@ -9,11 +9,9 @@ Birinci şahıs (FPS) hayatta kalma oyunu — Unity 6 / URP ile geliştirilmişt
 - [Genel Bakış](#genel-bakış)
 - [Öne Çıkan Özellikler](#öne-çıkan-özellikler)
 - [Mimari ve Teknik Detaylar](#mimari-ve-teknik-detaylar)
-- [Çözülen Teknik Zorluklar](#çözülen-teknik-zorluklar)
-- [Kullanılan Teknolojiler](#kullanılan-teknolojiler)
 - [Kurulum](#kurulum)
 - [Kontroller](#kontroller)
-- [Yol Haritası](#yol-haritası)
+
 
 ---
 
@@ -164,20 +162,6 @@ sequenceDiagram
     MissionService->>MissionService: KillEnemies hedefini ilerlet
 ```
 
-## Çözülen Teknik Zorluklar
-
-- **Özel HUD görselleri:** Varsayılan Unity barları yerine, prosedürel olarak üretilmiş (çerçeve + fill + ikon) sprite'lar 9-slice ile entegre edildi; anchor/scale/inset kaynaklı görsel boşluk ve hizalama sorunları tek tek giderilerek temiz, boşluksuz bir sonuca ulaşıldı.
-- **Birbirini ezmeyen kritik-durum geri bildirimi:** Her barın kendi "nabız" animasyonu kendi HUD script'inde kalırken, ekranı kaplayan tek bir vinyet katmanı ayrı ve merkezi bir `CriticalVignetteController`'a taşındı — böylece birden fazla sistem aynı paylaşılan UI elemanını yönetmeye çalışıp birbirini ezmiyor.
-- **Telemetri verisinin okunabilir hale getirilmesi:** Olay bazlı, JSON gömülü ham CSV çıktısı, oyun kod tabanından tamamen bağımsız bir Python aracıyla hem insan tarafından okunabilir bir oturum özetine hem de düz/tablo formatına çevrilecek şekilde ayrıştırıldı.
-
-## Kullanılan Teknolojiler
-
-- **Motor:** Unity 6 LTS (6000.3.22f1)
-- **Render Pipeline:** Universal Render Pipeline (URP)
-- **Dil:** C#
-- **Veri Analizi:** Python, pandas
-- **Versiyon Kontrolü:** Git / GitHub
-
 ## Kurulum
 
 1. [Unity Hub](https://unity.com/download) üzerinden Unity 6000.3.22f1 (ya da uyumlu bir 6 LTS sürümü) kurulu olmalı
@@ -203,4 +187,4 @@ sequenceDiagram
 
 ---
 
-_Bu proje bir portfolyo/CV çalışması olarak geliştirilmekte, aynı zamanda yazarın bitirme tezi için test ortamı olarak kullanılmaktadır._
+_Bu proje bir portfolyo/CV çalışması olarak geliştirilmekte, aynı zamanda bitirme tezi için test ortamı olarak kullanılmaktadır._
