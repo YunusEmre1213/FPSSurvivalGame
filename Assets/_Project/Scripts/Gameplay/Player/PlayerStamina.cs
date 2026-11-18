@@ -13,6 +13,7 @@ namespace Project.Gameplay.Player
 
         public float CurrentStamina { get; private set; }
         public float MaxStamina => maxStamina;
+        public bool IsSprinting { get; private set; }
 
         private bool _exhausted;
 
@@ -20,8 +21,11 @@ namespace Project.Gameplay.Player
         {
             CurrentStamina = maxStamina;
         }
+
         public bool TryDrainForSprint(float deltaTime)
         {
+            IsSprinting = true;
+
             if (_exhausted)
             {
                 if (CurrentStamina >= minStaminaToResumeSprint)
@@ -30,6 +34,7 @@ namespace Project.Gameplay.Player
                 }
                 else
                 {
+                    IsSprinting = false;
                     return false;
                 }
             }
@@ -37,6 +42,7 @@ namespace Project.Gameplay.Player
             if (CurrentStamina <= 0f)
             {
                 _exhausted = true;
+                IsSprinting = false;
                 return false;
             }
 
@@ -46,6 +52,7 @@ namespace Project.Gameplay.Player
 
         public void Regenerate(float deltaTime)
         {
+            IsSprinting = false;
             CurrentStamina = Mathf.Min(maxStamina, CurrentStamina + regenRate * deltaTime);
         }
     }

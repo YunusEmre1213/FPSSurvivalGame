@@ -11,12 +11,42 @@ namespace Project.UI
         [SerializeField] private Image hungerFillImage;
         [SerializeField] private Image thirstFillImage;
 
+        [Header("Kritik Uyari")]
+        [Range(0f, 1f)]
+        [SerializeField] private float criticalThreshold = 0.2f;
+        [SerializeField] private float pulseSpeed = 4f;
+        [Range(0f, 1f)]
+        [SerializeField] private float pulseBrightness = 0.35f;
+
+        private Color _hungerBaseColor;
+        private Color _thirstBaseColor;
+
+        private void Start()
+        {
+            _hungerBaseColor = hungerFillImage.color;
+            _thirstBaseColor = thirstFillImage.color;
+        }
+
         private void Update()
         {
             if (playerNeeds == null) return;
 
-            hungerFillImage.fillAmount = playerNeeds.Hunger / playerNeeds.MaxValue;
-            thirstFillImage.fillAmount = playerNeeds.Thirst / playerNeeds.MaxValue;
+            float hungerRatio = playerNeeds.Hunger / playerNeeds.MaxValue;
+            float thirstRatio = playerNeeds.Thirst / playerNeeds.MaxValue;
+
+            hungerFillImage.fillAmount = hungerRatio;
+            thirstFillImage.fillAmount = thirstRatio;
+
+            hungerFillImage.color = ApplyPulse(_hungerBaseColor, hungerRatio < criticalThreshold);
+            thirstFillImage.color = ApplyPulse(_thirstBaseColor, thirstRatio < criticalThreshold);
+        }
+
+        private Color ApplyPulse(Color baseColor, bool isCritical)
+        {
+            if (!isCritical) return baseColor;
+
+            float pulse = (Mathf.Sin(Time.time * pulseSpeed) + 1f) * 0.5f;
+            return Color.Lerp(baseColor, Color.white, pulse * pulseBrightness);
         }
     }
 }
