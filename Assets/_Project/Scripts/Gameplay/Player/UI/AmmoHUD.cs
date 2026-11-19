@@ -9,7 +9,8 @@ namespace Project.UI
 {
     public class AmmoHUD : MonoBehaviour
     {
-        [SerializeField] private TMP_Text ammoText;
+        [SerializeField] private TMP_Text currentAmmoText;
+        [SerializeField] private TMP_Text spareMagazinesText;
         [SerializeField] private ResourceData ammoItem;
 
         private int _currentAmmo;
@@ -42,8 +43,12 @@ namespace Project.UI
         private void Refresh()
         {
             var inventory = ServiceLocator.Instance.Get<IItemInventoryService>();
-            int reserve = inventory.GetItemCount(ammoItem);
-            ammoText.text = $"{_currentAmmo} / {reserve}";
+            int reserveRounds = inventory.GetItemCount(ammoItem);
+
+            int spareMagazines = _magazineCapacity > 0 ? reserveRounds / _magazineCapacity : 0;
+
+            currentAmmoText.text = _currentAmmo.ToString();
+            spareMagazinesText.text = spareMagazines.ToString();
         }
     }
 }
