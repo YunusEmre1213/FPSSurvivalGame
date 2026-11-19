@@ -14,8 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Project.Data.ConsumableData
   itemId: Food
   itemName: Konserve Yemek
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 44005e728b9a52248bc524a02fe6208c, type: 3}
   description: 
   maxStackSize: 10
   hungerRestore: 40
   thirstRestore: 0
+  sicknessChance: 0
+  sicknessDamage: 0

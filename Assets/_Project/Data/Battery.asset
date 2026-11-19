@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Project.Data.BatteryData
   itemId: Battery
   itemName: Fener Pili
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 09567777901ce0243b3db4bcf54517dc, type: 3}
   description: 
   maxStackSize: 5
-  chargeRestore: 50
+  chargeRestore: 65

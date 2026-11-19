@@ -8,9 +8,13 @@ namespace Project.UI
     [RequireComponent(typeof(Button))]
     public class SlotUI : MonoBehaviour
     {
+        [SerializeField] private Image backgroundImage;
         [SerializeField] private Image iconImage;
         [SerializeField] private TMP_Text nameText;
         [SerializeField] private TMP_Text countText;
+
+        [SerializeField, Range(0f, 1f)] private float emptyBackgroundAlpha = 0.55f;
+        [SerializeField, Range(0f, 1f)] private float filledBackgroundAlpha = 0.9f;
 
         public Button Button { get; private set; }
 
@@ -21,7 +25,11 @@ namespace Project.UI
 
         public void Refresh(InventorySlot slot)
         {
-            if (slot == null || slot.IsEmpty)
+            bool isEmpty = slot == null || slot.IsEmpty;
+
+            SetBackgroundAlpha(isEmpty ? emptyBackgroundAlpha : filledBackgroundAlpha);
+
+            if (isEmpty)
             {
                 iconImage.enabled = false;
                 nameText.text = "";
@@ -38,6 +46,14 @@ namespace Project.UI
 
             nameText.text = slot.Item.itemName;
             countText.text = slot.Count > 1 ? $"x{slot.Count}" : "";
+        }
+
+        private void SetBackgroundAlpha(float alpha)
+        {
+            if (backgroundImage == null) return;
+            var c = backgroundImage.color;
+            c.a = alpha;
+            backgroundImage.color = c;
         }
     }
 }
