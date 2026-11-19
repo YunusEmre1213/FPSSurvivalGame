@@ -9,12 +9,9 @@ Birinci şahıs (FPS) hayatta kalma oyunu — Unity 6 / URP ile geliştirilmişt
 - [Genel Bakış](#genel-bakış)
 - [Öne Çıkan Özellikler](#öne-çıkan-özellikler)
 - [Mimari ve Teknik Detaylar](#mimari-ve-teknik-detaylar)
-- [Çözülen Teknik Zorluklar](#çözülen-teknik-zorluklar)
-- [Kullanılan Teknolojiler](#kullanılan-teknolojiler)
 - [Kurulum](#kurulum)
 - [Kontroller](#kontroller)
-- [Krediler / Kullanılan Varlıklar](#krediler--kullanılan-varlıklar)
-- [Yol Haritası](#yol-haritası)
+
 
 ---
 
@@ -24,6 +21,8 @@ Birinci şahıs (FPS) hayatta kalma oyunu — Unity 6 / URP ile geliştirilmişt
 
 Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır, envanterini yönetir, silahını elindeki parçalarla özelleştirir ve günü/geceyi atlatmaya çalışır — tüm bunlar birbirine bağlı, tek bir görev döngüsü etrafında.
 
+Proje ayrıca yazarın bitirme tezi için canlı bir test ortamı olarak da kullanılıyor: oyun içindeki event-driven mimari, oyuncu davranışını analiz edip zorluk seviyesini dinamik olarak uyarlamayı hedefleyen ayrı bir Python/ML hattını besliyor (bkz. [Telemetri ve Veri Analizi](#telemetri-ve-veri-analizi)).
+
 ## Öne Çıkan Özellikler
 
 ### Silah Sistemi
@@ -31,6 +30,7 @@ Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır
 - Veri-odaklı silah montaj sistemi (`WeaponBaseData` + değiştirilebilir `WeaponPartData` parçaları: Namlu / Şarjör / Dipçik / Nişangah)
 - "Bozulmuş" parçalar arıza riski taşır — parça kalitesi doğrudan güvenilirliği etkiler
 - Tükenebilir mermi sistemi, gerçek doldurma mekaniği
+- Mermi ekonomisi bilinçli olarak craft edilemez tutuldu: şarjörler yalnızca haritanın belirli bölgelerinde (terk edilmiş yerleşimler gibi) loot olarak bulunur — bu, oyuncuyu üsten uzaklaşıp keşfe çıkmaya zorlayan tasarım kararlarından biri, aynı zamanda mermi kullanım verisini zorluk ayarı için anlamlı bir sinyale çeviriyor
 - Prosedürel geri tepme (recoil), yürüme/koşma sallanması (weapon bob), doldurma animasyonu — hiçbiri önceden hazırlanmış (baked) animasyon gerektirmiyor, tamamen kod tarafında üretiliyor
 - Namlu alevi, fizik motorlu şarjör düşürme, tam ses entegrasyonu
 - Mimari, yeni silah eklemeyi kod değiştirmeden mümkün kılacak şekilde tasarlandı (yeni `WeaponBaseData` + model prefabı yeterli)
@@ -46,7 +46,9 @@ Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır
 
 ### Hayatta Kalma Mekanikleri
 
-- Açlık / susuzluk / dayanıklılık (stamina) sistemleri, gerçek zamanlı tükenme
+- Açlık / susuzluk / dayanıklılık (stamina) / can sistemleri, gerçek zamanlı tükenme
+- Kaynak toplama: ağaçları baltayla kesme (dairesel ilerleme göstergesiyle), odun biriktirme
+- Avlanma: pasif hayvan AI'sı (geyik, görünce kaçma davranışı), vurulunca çiğ et düşürme/toplama, kamp ateşinde pişirme; çiğ et yemek hastalık riski taşıyor
 - Fener + pil sistemi — pil durumu bir arayüz çubuğuyla değil, **ışığın kendi davranışıyla** (sönükleşme, titreme) hissettiriliyor
 - Silah ile fener arasında geçiş sistemi — ikisi aynı anda elde tutulamıyor (bilinçli bir tasarım kısıtı, gerçek bir taktik gerilim yaratıyor)
 - Gün/gece döngüsü, özel bir Shader Graph gökyüzü geçiş shader'ıyla desteklenmiş
@@ -56,6 +58,18 @@ Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır
 - Genel, slot tabanlı envanter mimarisi — tüm eşya türleri (silah parçası, kaynak, tüketilebilir, pil) aynı temel sınıftan (`ItemData`) türer
 - Ağırlıklı rastgelelik tabanlı loot sistemi (`LootTableData`) — konteynerlere elle eşya yerleştirmek yerine veri-odaklı, tekrar kullanılabilir tablolar
 - Sıralı hedeflerden oluşan görev sistemi, mevcut sistemlere (envanter, düşman ölümü, tetikleyici alanlar) `EventBus` üzerinden bağlanıyor
+
+### Kullanıcı Arayüzü (HUD)
+
+- Can / stamina / susuzluk / açlık çubukları, özel olarak üretilmiş çerçeve ve ikon görselleriyle, tek bir "yıpranmış" görsel dilde tasarlandı (varsayılan/düz Unity barları yerine)
+- Stamina çubuğu yalnızca koşarken görünüp dinlenince yumuşak bir geçişle (fade) kayboluyor — gereksiz HUD kalabalığı önleniyor
+- Can, açlık veya susuzluktan herhangi biri kritik seviyeye düştüğünde ilgili çubuk bir "nabız" renk animasyonuyla uyarıyor; can durumuna göre kademeli şiddetlenen (hafif → belirgin → yoğun) kırmızı bir ekran kenarı vinyeti ek bir görsel geri bildirim katmanı sağlıyor
+
+### Telemetri ve Veri Analizi
+
+- Mevcut `EventBus` mimarisi, oyun içi sistemler dışında harici bir analiz hattını beslemek için de kullanılıyor: oturum başlangıç/bitiş, gece/gündüz faz değişimi, kaynak toplama, avlanma, yeme, oyuncu hasar/ölüm gibi olaylar ve periyodik oyuncu durum anlık görüntüleri CSV olarak diske yazılıyor
+- Bu ham veri, oyun kod tabanından tamamen ayrı, bağımsız bir Python projesinde (pandas tabanlı) işlenip hem okunabilir bir oturum özetine hem de düz/tablo haline getiriliyor
+- Nihai hedef: toplanan davranış verisiyle oyuncu performansını değerlendirip zorluk seviyesini dinamik olarak uyarlayan bir "Adaptive Game Director" sistemi geliştirmek
 
 ### Diğer
 
@@ -67,15 +81,15 @@ Oyuncu, güvenli bir üsten çıkıp kaynak toplar, düşmanlarla karşılaşır
 
 Proje boyunca tutarlı şekilde uygulanan tasarım kalıpları:
 
-| Kalıp                                       | Kullanım Alanı                                                                                                                            |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| **Event Bus** (statik, tip güvenli pub/sub) | Sistemler arası, birbirinden habersiz iletişim (ör. bir düşman öldüğünde görev sistemi haberdar oluyor, ama ikisi birbirini hiç bilmiyor) |
-| **Service Locator** + `IGameService`        | Envanter, kayıt, görev, anahtar eşya gibi servislerin merkezi yönetimi                                                                    |
-| **State Pattern**                           | Düşman AI davranışları, gün/gece döngüsü fazları                                                                                          |
-| **Strategy Pattern**                        | Ateş modları (tek atım / otomatik)                                                                                                        |
-| **Dependency Inversion**                    | Girdi sistemi (`IInputProvider` soyutlaması)                                                                                              |
-| **Veri-Odaklı Tasarım** (ScriptableObject)  | Silah parçaları, kaynaklar, tüketilebilirler, görevler, loot tabloları — hepsi kod değişmeden Inspector'dan tasarlanabilir                |
-| **Object Pooling**                          | Düşman spawn sistemi                                                                                                                      |
+| Kalıp                                        | Kullanım Alanı                                                                                                                                                             |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Event Bus** (statik, tip güvenli pub/sub)   | Sistemler arası, birbirinden habersiz iletişim (ör. bir düşman öldüğünde görev sistemi haberdar oluyor, ama ikisi birbirini hiç bilmiyor); aynı mimari, oyun dışı telemetri/analiz hattını beslemek için de kullanılıyor |
+| **Service Locator** + `IGameService`         | Envanter, kayıt, görev, anahtar eşya gibi servislerin merkezi yönetimi                                                                                                      |
+| **State Pattern**                            | Düşman AI davranışları, gün/gece döngüsü fazları                                                                                                                            |
+| **Strategy Pattern**                         | Ateş modları (tek atım / otomatik)                                                                                                                                          |
+| **Dependency Inversion**                     | Girdi sistemi (`IInputProvider` soyutlaması)                                                                                                                                |
+| **Veri-Odaklı Tasarım** (ScriptableObject)   | Silah parçaları, kaynaklar, tüketilebilirler, görevler, loot tabloları — hepsi kod değişmeden Inspector'dan tasarlanabilir                                                 |
+| **Object Pooling**                           | Düşman spawn sistemi                                                                                                                                                         |
 
 ### Sistem Mimarisi
 
@@ -102,6 +116,8 @@ graph TD
     WeaponController -->|yayınlar| EventBus
     EnemyController -->|dinler ve yayınlar| EventBus
     MissionService -->|dinler| EventBus
+    EventBus -->|dinler| TelemetryListener
+    TelemetryListener -->|CSV| PythonAnalytics[Python / Pandas Analiz Hattı]
 ```
 
 ### Düşman AI Karar Akışı
@@ -146,13 +162,6 @@ sequenceDiagram
     MissionService->>MissionService: KillEnemies hedefini ilerlet
 ```
 
-## Kullanılan Teknolojiler
-
-- **Motor:** Unity 6 LTS (6000.3.22f1)
-- **Render Pipeline:** Universal Render Pipeline (URP)
-- **Dil:** C#
-- **Versiyon Kontrolü:** Git / GitHub
-
 ## Kurulum
 
 1. [Unity Hub](https://unity.com/download) üzerinden Unity 6000.3.22f1 (ya da uyumlu bir 6 LTS sürümü) kurulu olmalı
@@ -163,19 +172,19 @@ sequenceDiagram
 ## Kontroller
 
 | Tuş                  | Aksiyon                               |
-| -------------------- | ------------------------------------- |
-| `W A S D`            | Hareket                               |
-| `Shift` (basılı tut) | Koşma                                 |
-| `Space`              | Zıplama                               |
-| `Sol Fare`           | Ateş etme                             |
-| `R`                  | Doldurma                              |
-| `1` / `2`            | Silah / Fener arasında geçiş          |
-| `L`                  | Feneri aç/kapat                       |
-| `E`                  | Eşya toplama                          |
-| `F`                  | Etkileşim (workbench, kamp ateşi vb.) |
-| `I`                  | Envanteri aç/kapat                    |
-| `Esc`                | Duraklat                              |
+| --------------------- | --------------------------------------- |
+| `W A S D`             | Hareket                                |
+| `Shift` (basılı tut)  | Koşma                                  |
+| `Space`               | Zıplama                                |
+| `Sol Fare`            | Ateş etme                              |
+| `R`                   | Doldurma                               |
+| `1` / `2`             | Silah / Fener arasında geçiş           |
+| `L`                   | Feneri aç/kapat                        |
+| `E`                   | Eşya toplama                           |
+| `F`                   | Etkileşim (workbench, kamp ateşi vb.)  |
+| `I`                   | Envanteri aç/kapat                     |
+| `Esc`                 | Duraklat                               |
 
 ---
 
-_Bu proje, bir portfolyo/CV çalışması olarak geliştirilmektedir._
+_Bu proje bir portfolyo/CV çalışması olarak geliştirilmekte, aynı zamanda bitirme tezi için test ortamı olarak kullanılmaktadır._
