@@ -1,46 +1,42 @@
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Project.Core;
 
 namespace Project.UI
 {
     public class MainMenuController : MonoBehaviour
     {
-        [SerializeField] private Button newGameButton;
-        [SerializeField] private Button continueButton;
+        [Header("Butonlar")]
+        [SerializeField] private Button playButton;
+        [SerializeField] private Button settingsButton;
         [SerializeField] private Button quitButton;
-        [SerializeField] private string gameplaySceneName = "SampleScene";
 
         private void Awake()
         {
-            newGameButton.onClick.AddListener(StartNewGame);
-            continueButton.onClick.AddListener(ContinueGame);
-            quitButton.onClick.AddListener(QuitGame);
-            continueButton.interactable = SaveFileExistsOnDisk();
+            playButton.onClick.AddListener(OnPlayPressed);
+            settingsButton.onClick.AddListener(OnSettingsPressed);
+            quitButton.onClick.AddListener(OnQuitPressed);
         }
 
-        private void StartNewGame()
+        [Header("Sahne Gecisi")]
+        [SerializeField] private string gameplaySceneName = "SampleScene";
+
+        private void OnPlayPressed()
         {
-            PlayerPrefs.SetInt(GameFlowKeys.ShouldLoadSaveOnStart, 0);
-            SceneManager.LoadScene(gameplaySceneName);
+            SceneTransitionController.Instance.LoadScene(gameplaySceneName);
         }
 
-        private void ContinueGame()
+        private void OnSettingsPressed()
         {
-            PlayerPrefs.SetInt(GameFlowKeys.ShouldLoadSaveOnStart, 1);
-            SceneManager.LoadScene(gameplaySceneName);
+
         }
 
-        private void QuitGame()
+        private void OnQuitPressed()
         {
-            Debug.Log("[MainMenuController] Oyundan cikiliyor.");
             Application.Quit();
-        }
-        private bool SaveFileExistsOnDisk()
-        {
-            string path = System.IO.Path.Combine(Application.persistentDataPath, "save.json");
-            return System.IO.File.Exists(path);
+
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#endif
         }
     }
 }
