@@ -10,6 +10,9 @@ namespace Project.UI
         [SerializeField] private Button settingsButton;
         [SerializeField] private Button quitButton;
 
+        [Header("Ayarlar Paneli")]
+        [SerializeField] private SettingsPanelController settingsPanelController;
+
         private void Awake()
         {
             playButton.onClick.AddListener(OnPlayPressed);
@@ -27,7 +30,7 @@ namespace Project.UI
 
         private void OnSettingsPressed()
         {
-
+            settingsPanelController.Open();
         }
 
         private void OnQuitPressed()

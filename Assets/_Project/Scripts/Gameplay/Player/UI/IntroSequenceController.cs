@@ -3,17 +3,13 @@ using UnityEngine;
 
 namespace Project.UI
 {
-    /// <summary>
-    /// Ana menu acilis sekansi: once tam siyah ekran, sonra motif+baslik yavasca
-    /// belirir, bir sure ekranda kalir, en sonunda tum overlay (siyah zemin dahil)
-    /// yavasca solup altindaki canli menu sahnesini (kamp atesi + butonlar) acar.
-    /// </summary>
+
     public class IntroSequenceController : MonoBehaviour
     {
         [Header("Gruplar")]
-        [SerializeField] private CanvasGroup overlayGroup;   // IntroOverlay (siyah zemin + her sey) - son solma
-        [SerializeField] private CanvasGroup contentGroup;   // IntroContent (motif + baslik) - ilk beliris
-        [SerializeField] private CanvasGroup buttonsGroup;   // MenuButtonsRoot - kamp acilirken onunla birlikte belirir
+        [SerializeField] private CanvasGroup overlayGroup;   
+        [SerializeField] private CanvasGroup contentGroup;   
+        [SerializeField] private CanvasGroup buttonsGroup;  
 
         [Header("Zamanlama")]
         [SerializeField] private float holdBlackDuration = 0.6f;
@@ -28,8 +24,7 @@ namespace Project.UI
             overlayGroup.blocksRaycasts = true;
             contentGroup.alpha = 0f;
 
-            // Butonlar baslangicta tamamen gorunmez ve tiklanamaz - kamp acilirken
-            // onlarla birlikte yavasca belirecekler.
+
             buttonsGroup.alpha = 0f;
             buttonsGroup.interactable = false;
             buttonsGroup.blocksRaycasts = false;
@@ -37,27 +32,29 @@ namespace Project.UI
 
         private void Start()
         {
+
+            FPSCounterController.Instance?.SetSuppressed(true);
+
             StartCoroutine(PlayIntro());
         }
 
         private IEnumerator PlayIntro()
         {
-            // 1) Tam siyah, hic bir sey gorunmuyor
+
             yield return new WaitForSeconds(holdBlackDuration);
 
-            // 2) Motif + baslik yavasca beliriyor (siyah zemin hala tam opak)
             yield return Fade(contentGroup, 0f, 1f, titleFadeInDuration);
 
-            // 3) Baslik bir sure okunur halde ekranda kalsin
             yield return new WaitForSeconds(holdTitleDuration);
 
-            // 4) Overlay (siyah zemin + motif + baslik) soluyor, AYNI ANDA
-            // butonlar da kamp sahnesiyle birlikte belirmeye basliyor.
+
             yield return FadeOverlayAndRevealButtons(overlayFadeOutDuration);
 
             overlayGroup.gameObject.SetActive(false);
             buttonsGroup.interactable = true;
             buttonsGroup.blocksRaycasts = true;
+
+            FPSCounterController.Instance?.SetSuppressed(false);
         }
 
         private IEnumerator FadeOverlayAndRevealButtons(float duration)

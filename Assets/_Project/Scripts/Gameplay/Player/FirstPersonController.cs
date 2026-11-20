@@ -1,5 +1,6 @@
 using UnityEngine;
 using Project.Gameplay.Tools;
+using Project.UI;
 
 namespace Project.Gameplay.Player
 {
@@ -27,6 +28,7 @@ namespace Project.Gameplay.Player
         [SerializeField] private float fullBucketSpeedMultiplier = 0.6f;
 
         [Header("Nisan")]
+        [Tooltip("Taban (tasarim-zamani) nisan hizi. Ayarlar panelindeki Fare Hassasiyeti carpani bunun uzerine uygulanir.")]
         [SerializeField] private float lookSpeed = 3f;
         [Tooltip("Dokunmatik girdideki titremeyi azaltir. 0 = hic yumusatma (en hizli tepki, en titrek). Yuksek deger = daha yumusak ama gecikmeli.")]
         [SerializeField] private float lookSmoothTime = 0.03f;
@@ -103,9 +105,11 @@ namespace Project.Gameplay.Player
 
             _smoothedLookDelta = Vector2.SmoothDamp(_smoothedLookDelta, rawDelta, ref _lookDeltaSmoothRef, lookSmoothTime);
 
-            transform.Rotate(Vector3.up, _smoothedLookDelta.x * lookSpeed);
+            float effectiveLookSpeed = lookSpeed * SettingsPanelController.MouseSensitivity;
 
-            _pitch = Mathf.Clamp(_pitch - _smoothedLookDelta.y * lookSpeed, minPitch, maxPitch);
+            transform.Rotate(Vector3.up, _smoothedLookDelta.x * effectiveLookSpeed);
+
+            _pitch = Mathf.Clamp(_pitch - _smoothedLookDelta.y * effectiveLookSpeed, minPitch, maxPitch);
             cameraPivot.localRotation = Quaternion.Euler(_pitch, 0f, 0f);
         }
 
