@@ -40,8 +40,10 @@ namespace Project.UI
         private int _qualityIndex;
         private int _sensitivityIndex;
 
-
         public static float MouseSensitivity { get; private set; } = 1f;
+
+   
+        public System.Action OnClosed;
 
         private void Awake()
         {
@@ -50,7 +52,6 @@ namespace Project.UI
             sensitivityButton.onClick.AddListener(OnSensitivityButtonPressed);
             toggleFpsButton.onClick.AddListener(OnToggleFpsPressed);
             closeButton.onClick.AddListener(Close);
-
 
             panelRoot.SetActive(false);
 
@@ -99,6 +100,7 @@ namespace Project.UI
         public void Close()
         {
             panelRoot.SetActive(false);
+            OnClosed?.Invoke();
         }
 
         private void OnQualityButtonPressed()
@@ -144,6 +146,11 @@ namespace Project.UI
 
         private void OnToggleFpsPressed()
         {
+            if (FPSCounterController.Instance == null)
+            {
+                return;
+            }
+
             FPSCounterController.Instance.Toggle();
             RefreshFpsLabel();
         }
@@ -177,6 +184,12 @@ namespace Project.UI
 
         private void RefreshFpsLabel()
         {
+            if (FPSCounterController.Instance == null)
+            {
+                toggleFpsButtonText.text = "FPS: -";
+                return;
+            }
+
             bool showing = FPSCounterController.Instance.IsVisible;
             toggleFpsButtonText.text = showing ? "FPS: AÇIK" : "FPS: KAPALI";
         }

@@ -15,6 +15,10 @@ namespace Project.UI
 
         private void Awake()
         {
+
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
             playButton.onClick.AddListener(OnPlayPressed);
             settingsButton.onClick.AddListener(OnSettingsPressed);
             quitButton.onClick.AddListener(OnQuitPressed);
